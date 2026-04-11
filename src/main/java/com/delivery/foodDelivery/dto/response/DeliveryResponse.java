@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeliveryResponse {
-
     private Long id;
     private Long orderId;
     private Long deliveryPartnerId;
