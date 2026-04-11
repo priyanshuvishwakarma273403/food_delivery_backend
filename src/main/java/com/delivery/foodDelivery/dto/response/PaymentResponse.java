@@ -17,6 +17,4 @@ public class PaymentResponse {
     // Razorpay-specific fields (for future extension)
     private String razorpayOrderId;
     private String razorpayPaymentId;
-
-
 }
