@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * DELETE /cart/items/{menuItemId}          → Remove item
  * DELETE /cart                             → Clear entire cart
  */
+
 @RestController
 @RequestMapping("/cart")
 @RequiredArgsConstructor
