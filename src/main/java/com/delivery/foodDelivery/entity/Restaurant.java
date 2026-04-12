@@ -54,9 +54,6 @@ public class Restaurant extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
-    @Column(name = "created_At")
-    private LocalDateTime createdAt;
-
     // One restaurant has many menu items
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

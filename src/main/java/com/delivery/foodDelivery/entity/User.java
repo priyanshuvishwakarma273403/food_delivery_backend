@@ -45,9 +45,6 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
-    @Column(name = "created_At")
-    private LocalDateTime createdAt;
-
     // Delivery address for customers
     private String address;
 

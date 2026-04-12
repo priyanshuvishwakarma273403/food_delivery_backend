@@ -63,10 +63,6 @@ public class Order extends BaseEntity{
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Delivery delivery;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     // Special notes from customer
     private String specialInstructions;
 
