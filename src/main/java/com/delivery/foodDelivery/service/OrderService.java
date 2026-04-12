@@ -164,13 +164,13 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrderHistory(Long customerId) {
-        return orderRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+        return orderRepository.findByCustomerIdOrderByCreatedDateDesc(customerId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByRestaurant(Long restaurantId) {
-        return orderRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId)
+        return orderRepository.findByRestaurantIdOrderByCreatedDateDesc(restaurantId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 

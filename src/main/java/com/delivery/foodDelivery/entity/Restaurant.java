@@ -37,7 +37,7 @@ public class Restaurant extends BaseEntity {
 
     private String imageUrl;
 
-    @Column(precision = 2, scale = 1)
+    @Column(name = "rating")
     private Double rating;
 
     @Column(name = "avg_delivery_time_minutes")

@@ -13,9 +13,9 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
 
-    List<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Order> findByCustomerIdOrderByCreatedDateDesc(Long customerId);
 
-    List<Order> findByRestaurantIdOrderByCreatedAtDesc(Long restaurantId);
+    List<Order> findByRestaurantIdOrderByCreatedDateDesc(Long restaurantId);
 
     List<Order> findByStatus(OrderStatus status);
 
