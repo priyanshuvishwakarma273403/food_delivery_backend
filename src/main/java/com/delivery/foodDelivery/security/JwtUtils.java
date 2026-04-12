@@ -27,7 +27,6 @@ public class JwtUtils {
     @Value("${app.jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
-
     public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return buildToken(claims, userDetails.getUsername(), jwtExpirationMs);
@@ -46,7 +45,6 @@ public class JwtUtils {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
