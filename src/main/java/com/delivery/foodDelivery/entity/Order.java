@@ -5,6 +5,7 @@ import com.delivery.foodDelivery.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +62,10 @@ public class Order extends BaseEntity{
     // Delivery
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Delivery delivery;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     // Special notes from customer
     private String specialInstructions;
