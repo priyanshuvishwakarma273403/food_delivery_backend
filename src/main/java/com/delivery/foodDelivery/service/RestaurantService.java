@@ -110,7 +110,7 @@ public class RestaurantService {
                 .avgDeliveryTime(r.getAvgDeliveryTime())
                 .minOrderAmount(r.getMinOrderAmount())
                 .open(r.isOpen())
-                .createdAt(r.getCreatedAt())
+                .createdAt(r.getCreatedDate())
                 .build();
     }
 

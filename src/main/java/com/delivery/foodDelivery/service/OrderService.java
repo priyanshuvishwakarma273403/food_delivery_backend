@@ -266,8 +266,8 @@ public class OrderService {
                 .paymentId(o.getPaymentId())
                 .specialInstructions(o.getSpecialInstructions())
                 .delivery(deliveryResponse)
-                .createdAt(o.getCreatedAt())
-                .updatedAt(o.getUpdatedAt())
+                .createdAt(o.getCreatedDate())
+                .updatedAt(o.getUpdatedDate())
                 .build();
     }
 }

@@ -105,7 +105,7 @@ public class AuthService {
                 .role(user.getRole().name())
                 .address(user.getAddress())
                 .active(user.isActive())
-                .createdAt(user.getCreatedAt())
+                .createdAt(user.getCreatedDate())
                 .build();
     }
 
