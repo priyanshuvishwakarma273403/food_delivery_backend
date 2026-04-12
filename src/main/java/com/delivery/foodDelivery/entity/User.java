@@ -4,6 +4,7 @@ import com.delivery.foodDelivery.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,9 @@ public class User extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private boolean active = true;
+
+    @Column(name = "created_At")
+    private LocalDateTime createdAt;
 
     // Delivery address for customers
     private String address;
