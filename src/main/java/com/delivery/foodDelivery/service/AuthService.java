@@ -28,13 +28,27 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
+    private final OtpService otpService;
+    private final EmailService emailService;
+
+    public void sendVerificationOtp(String email) {
+        if(userRepository.existsByEmail(email)){
+            throw new BusinessException("Email already registered : " + email);
+        }
+        String otp = otpService.generateOtp(email);
+        emailService.sendVerificationEmail(email, otp);
+    }
 
     @Transactional
-    public AuthResponse register(RegisterRequest request){
+    public AuthResponse register(RegisterRequest request, String otp){
+        if (!otpService.verifyOtp(request.getEmail(), otp)) {
+            throw new BusinessException("Invalid or expired OTP");
+        }
 
         if(userRepository.existsByEmail(request.getEmail())){
             throw new BusinessException("Email already registered : " + request.getEmail());
         }
+        
         if(userRepository.existsByPhone(request.getPhone())){
             throw new BusinessException("Phone number already registered : " + request.getPhone());
         }

@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Authentication endpoints — public (no JWT required).
@@ -40,10 +37,19 @@ public class AuthController {
      *   "address": "221B Baker Street, Delhi"
      * }
      */
+    @PostMapping("/send-otp")
+    public ResponseEntity<ApiResponse<Void>> sendOtp(@RequestParam String email) {
+        authService.sendVerificationOtp(email);
+        return ResponseEntity.ok(ApiResponse.success("Verification OTP sent to " + email, null));
+    }
+
+    /**
+     * Register a new user with OTP verification.
+     */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+        AuthResponse response = authService.register(request, request.getOtp());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("User registered successfully", response));
     }

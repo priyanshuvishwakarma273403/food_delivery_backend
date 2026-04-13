@@ -29,4 +29,5 @@ public class RegisterRequest {
     private String address;
 
     private String role;
+    private String otp;
 }
