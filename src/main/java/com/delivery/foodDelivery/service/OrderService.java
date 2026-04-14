@@ -37,6 +37,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartService         cartService;
     private final PaymentService      paymentService;
+    private final KafkaService        kafkaService;
 
     // ──────────────────────────────────────────────
     // Place Order
@@ -103,6 +104,12 @@ public class OrderService {
         cartService.clearCart(customerId);
 
         log.info("Order placed: id={} customer={} amount={}", saved.getId(), customerId, total);
+        
+        // Kafka: Broadcast new order event
+        kafkaService.sendMessage("order-events", 
+            String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": %d, \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
+            saved.getId(), customerId, saved.getRestaurant().getId(), total, System.currentTimeMillis()));
+
         return toResponse(saved);
     }
 
@@ -116,8 +123,13 @@ public class OrderService {
         OrderStatus newStatus = parseStatus(newStatusStr);
         validateStatusTransition(order.getStatus(), newStatus);
         order.setStatus(newStatus);
+        Order updated = orderRepository.save(order);
         log.info("Order {} status → {}", orderId, newStatus);
-        return toResponse(orderRepository.save(order));
+
+        // Kafka: Broadcast status change event
+        kafkaService.sendOrderStatusUpdate(orderId, newStatus.name());
+
+        return toResponse(updated);
     }
 
     @Transactional

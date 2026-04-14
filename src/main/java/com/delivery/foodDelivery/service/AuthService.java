@@ -30,11 +30,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final OtpService otpService;
     private final EmailService emailService;
+    private final KafkaService kafkaService;
 
-    public void sendVerificationOtp(String email) {
-        if(userRepository.existsByEmail(email)){
-            throw new BusinessException("Email already registered : " + email);
-        }
+    public void sendEmailOtp(String email) {
+        log.info("Generating OTP for email: {}", email);
         String otp = otpService.generateOtp(email);
         emailService.sendVerificationEmail(email, otp);
     }
@@ -88,6 +87,12 @@ public class AuthService {
         String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
         log.info("User logged in: {}", user.getEmail());
+        
+        // Kafka Advance Use Case: Send login event for real-time analytics
+        kafkaService.sendMessage("user-analytics", 
+            String.format("{\"userId\": %d, \"action\": \"LOGIN\", \"timestamp\": %d}", 
+            user.getId(), System.currentTimeMillis()));
+
         return buildAuthResponse(accessToken, refreshToken, user);
     }
 

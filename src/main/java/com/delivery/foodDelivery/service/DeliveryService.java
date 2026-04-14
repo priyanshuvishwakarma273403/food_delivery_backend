@@ -37,6 +37,7 @@ public class DeliveryService {
     private final DeliveryPartnerRepository partnerRepository;
     private final OrderService               orderService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final KafkaService        kafkaService;
 
     // ──────────────────────────────────────────────
     // Admin: Assign a delivery partner to an order
@@ -184,6 +185,10 @@ public class DeliveryService {
                 .build();
 
         messagingTemplate.convertAndSend("/topic/location/" + orderId, message);
+
+        // Kafka: Stream location update for real-time analytics and tracking history
+        kafkaService.sendLocationUpdate(delivery.getId(), request.getLatitude(), request.getLongitude());
+
         log.debug("Location broadcast: orderId={} [{}, {}]", orderId,
                 request.getLatitude(), request.getLongitude());
     }
