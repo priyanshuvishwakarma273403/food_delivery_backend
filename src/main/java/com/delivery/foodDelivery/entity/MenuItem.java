@@ -43,6 +43,8 @@ public class MenuItem extends BaseEntity {
     @Builder.Default
     private Integer stockQuantity = 100; // Default stock level
 
+    private String menuCategory; // e.g. "Biryani", "Starters"
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
