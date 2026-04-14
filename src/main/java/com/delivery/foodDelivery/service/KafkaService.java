@@ -18,8 +18,14 @@ public class KafkaService {
      * @param message Message content (usually JSON string)
      */
     public void sendMessage(String topic, String message) {
-        log.info("Sending message to Kafka topic {}: {}", topic, message);
-        kafkaTemplate.send(topic, message);
+        try {
+            log.info("Sending message to Kafka topic {}: {}", topic, message);
+            kafkaTemplate.send(topic, message);
+        } catch (Exception e) {
+            log.error("Kafka ERROR: Could not send message to topic {}. Is Kafka connected? Error: {}", 
+                topic, e.getMessage());
+            // We catch exception so that main flow (like Login/OTP) is not blocked
+        }
     }
 
     /**

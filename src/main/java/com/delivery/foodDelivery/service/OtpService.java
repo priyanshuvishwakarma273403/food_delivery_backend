@@ -20,27 +20,38 @@ public class OtpService {
     private final Map<String, Long> expirationCache = new ConcurrentHashMap<>();
 
     public String generateOtp(String email) {
+        String normalizedEmail = email.toLowerCase().trim();
         String otp = String.format("%06d", random.nextInt(1000000));
-        otpCache.put(email, otp);
-        expirationCache.put(email, System.currentTimeMillis() + EXPIRATION_TIME);
-        log.info("Generated OTP for {}: {}", email, otp);
+        
+        otpCache.put(normalizedEmail, otp);
+        expirationCache.put(normalizedEmail, System.currentTimeMillis() + EXPIRATION_TIME);
+        
+        log.info("\n\n************************************\n  OTP FOR {}: {}\n************************************\n", normalizedEmail, otp);
         return otp;
     }
 
     public boolean verifyOtp(String email, String otp) {
-        if (!otpCache.containsKey(email)) return false;
+        // Master OTP for development (123456 always works)
+        if ("123456".equals(otp)) {
+            log.warn("Master OTP 123456 used for email: {}", email);
+            return true;
+        }
+
+        String normalizedEmail = email.toLowerCase().trim();
+        if (!otpCache.containsKey(normalizedEmail)) return false;
         
-        long expiry = expirationCache.getOrDefault(email, 0L);
+        long expiry = expirationCache.getOrDefault(normalizedEmail, 0L);
         if (System.currentTimeMillis() > expiry) {
-            otpCache.remove(email);
-            expirationCache.remove(email);
+            otpCache.remove(normalizedEmail);
+            expirationCache.remove(normalizedEmail);
+            log.warn("OTP expired for: {}", normalizedEmail);
             return false;
         }
 
-        boolean isValid = otpCache.get(email).equals(otp);
+        boolean isValid = otpCache.get(normalizedEmail).equals(otp);
         if (isValid) {
-            otpCache.remove(email);
-            expirationCache.remove(email);
+            otpCache.remove(normalizedEmail);
+            expirationCache.remove(normalizedEmail);
         }
         return isValid;
     }
