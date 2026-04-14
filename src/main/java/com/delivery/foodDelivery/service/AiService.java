@@ -27,6 +27,28 @@ public class AiService {
     @Value("${groq.api.model}")
     private String model;
 
+    public String getPersonalizedGreeting(String userName) {
+        int hour = java.time.LocalTime.now().getHour();
+        String timeContext;
+        String suggestion;
+
+        if (hour >= 5 && hour < 12) {
+            timeContext = "Morning";
+            suggestion = "How about a fresh breakfast to kickstart your day?";
+        } else if (hour >= 12 && hour < 17) {
+            timeContext = "Afternoon";
+            suggestion = "Time for a delicious lunch! Have you tried the local favorites?";
+        } else if (hour >= 17 && hour < 21) {
+            timeContext = "Evening";
+            suggestion = "Craving some evening snacks or a hearty dinner?";
+        } else {
+            timeContext = "Late Night";
+            suggestion = "Late night cravings? We have the best desserts and snacks open for you!";
+        }
+
+        return String.format("Good %s, %s! %s", timeContext, userName, suggestion);
+    }
+
     public String getChatResponse(AiChatRequest request) {
         if (apiKey == null || apiKey.isEmpty()) {
             throw new BusinessException("AI Assistant is not configured on the server.");

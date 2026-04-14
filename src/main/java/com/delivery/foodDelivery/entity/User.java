@@ -52,6 +52,10 @@ public class User extends BaseEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Cart cart;
 
+    // Wallet for Loyalty Coins
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Wallet wallet;
+
     // Order history
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @Builder.Default

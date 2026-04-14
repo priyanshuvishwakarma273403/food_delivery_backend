@@ -6,7 +6,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class KafkaConsumerService {
+
+    private final com.delivery.foodDelivery.repository.MenuItemRepository menuItemRepository;
+    private final com.delivery.foodDelivery.repository.OrderRepository orderRepository;
 
     /**
      * Listen for Order Status updates to trigger real-time notifications
@@ -36,5 +40,16 @@ public class KafkaConsumerService {
     public void consumeUserAnalytics(String message) {
         log.info("[MARKETING ENGINE] Analyzing user behavior: {}", message);
         // Logic: If user logged in after 7 days, send "We missed you!" coupon
+    }
+
+    /**
+     * Listen for Order Events to update Inventory / Stock in real-time
+     */
+    @KafkaListener(topics = "order-events", groupId = "food-delivery-group")
+    public void consumeOrderEvent(String message) {
+        log.info("[INVENTORY SERVICE] Processing order for stock update: {}", message);
+        // Step 1: Parse total order JSON
+        // Step 2: Extract List<OrderItem>
+        // Step 3: For each item, menuItemRepository.decrementStock(id, qty)
     }
 }

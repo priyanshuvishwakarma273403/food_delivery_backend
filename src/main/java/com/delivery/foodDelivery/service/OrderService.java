@@ -38,6 +38,7 @@ public class OrderService {
     private final CartService         cartService;
     private final PaymentService      paymentService;
     private final KafkaService        kafkaService;
+    private final WalletService       walletService;
 
     // ──────────────────────────────────────────────
     // Place Order
@@ -58,12 +59,23 @@ public class OrderService {
         }
 
         double total = cart.getTotalPrice();
+        double coinsToUse = 0.0;
+        
+        // Handle Tomato Coins redemption
+        if (request.isUseCoins()) {
+            Wallet wallet = walletService.getWalletByUserId(customerId);
+            coinsToUse = Math.min(wallet.getBalance(), total); // Cannot use more coins than total price
+            walletService.spendCoins(customerId, coinsToUse);
+            total -= coinsToUse;
+            log.info("Used {} Tomato Coins for user {}. New total: {}", coinsToUse, customerId, total);
+        }
+
         if (total < restaurant.getMinOrderAmount()) {
             throw new BusinessException(
                     "Minimum order amount is ₹" + restaurant.getMinOrderAmount());
         }
 
-        // 2. Process payment
+        // 2. Process payment (Now for the discounted total)
         PaymentResponse payment = paymentService.processPayment(
                 null, total, request.getPaymentMethod(), request.getPaymentToken());
 
@@ -85,6 +97,8 @@ public class OrderService {
                 .paymentId(payment.getPaymentId())
                 .specialInstructions(request.getSpecialInstructions())
                 .status(OrderStatus.PLACED)
+                .coinsUsed(coinsToUse)
+                .finalAmount(total)
                 .build();
 
         // 4. Convert cart items → order items (price snapshot)
@@ -103,7 +117,13 @@ public class OrderService {
         // 5. Clear cart
         cartService.clearCart(customerId);
 
-        log.info("Order placed: id={} customer={} amount={}", saved.getId(), customerId, total);
+        // 6. Reward Loyalty Coins (1% cashback)
+        double rewardCoins = Math.floor(total * 0.01); 
+        if (rewardCoins > 0) {
+            walletService.addCoins(customerId, rewardCoins);
+        }
+
+        log.info("Order placed: id={} customer={} amount={} (Rewards: {})", saved.getId(), customerId, total, rewardCoins);
         
         // Kafka: Broadcast new order event
         kafkaService.sendMessage("order-events", 

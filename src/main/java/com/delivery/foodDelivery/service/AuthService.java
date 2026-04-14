@@ -31,6 +31,7 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final KafkaService kafkaService;
+    private final WalletService walletService;
 
     public void sendEmailOtp(String email) {
         log.info("Generating OTP for email: {}", email);
@@ -64,6 +65,10 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+        
+        // Initialize Wallet for Loyalty Program
+        walletService.createWallet(user);
+        
         log.info("New user registered: {} [{}]", user.getEmail(), user.getRole());
 
         // Auto-login after registration

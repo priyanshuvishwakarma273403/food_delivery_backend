@@ -66,4 +66,13 @@ public class Order extends BaseEntity{
     // Special notes from customer
     private String specialInstructions;
 
+    // Loyalty System
+    @Column(name = "coins_used")
+    @Builder.Default
+    private Double coinsUsed = 0.0;
+
+    @Column(name = "final_amount")
+    private Double finalAmount; 
+
+
 }
