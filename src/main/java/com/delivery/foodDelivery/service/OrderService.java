@@ -297,6 +297,8 @@ public class OrderService {
                 .paymentMethod(o.getPaymentMethod())
                 .paymentId(o.getPaymentId())
                 .specialInstructions(o.getSpecialInstructions())
+                .coinsUsed(o.getCoinsUsed())
+                .finalAmount(o.getFinalAmount())
                 .delivery(deliveryResponse)
                 .createdAt(o.getCreatedDate())
                 .updatedAt(o.getUpdatedDate())

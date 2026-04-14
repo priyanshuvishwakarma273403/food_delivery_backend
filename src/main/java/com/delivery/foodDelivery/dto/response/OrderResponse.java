@@ -25,8 +25,9 @@ public class OrderResponse {
     private String paymentMethod;
     private String paymentId;
     private String specialInstructions;
+    private Double coinsUsed;
+    private Double finalAmount;
     private DeliveryResponse delivery;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
 }
