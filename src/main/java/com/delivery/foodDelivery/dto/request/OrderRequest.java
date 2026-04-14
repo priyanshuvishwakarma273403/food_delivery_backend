@@ -20,4 +20,3 @@ public class OrderRequest {
 
     private boolean useCoins; // Use Tomato Coins for this order
 }
-}
