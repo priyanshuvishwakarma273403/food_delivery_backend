@@ -31,8 +31,12 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(nullable = false)
     private String password;
+
+    // Mapping to password_hash as well to satisfy existing DB constraints
+    @Column(name = "password_hash")
+    private String passwordHash;
 
     @Column(nullable = false)
     private String phone;
