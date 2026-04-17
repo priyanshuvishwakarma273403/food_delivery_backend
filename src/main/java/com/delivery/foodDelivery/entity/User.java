@@ -41,7 +41,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_active")
     @Builder.Default
     private boolean active = true;
 
