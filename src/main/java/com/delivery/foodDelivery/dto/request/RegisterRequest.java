@@ -23,7 +23,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank(message = "Phone is required")
-    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid Indian phone number")
+    @Pattern(regexp = "^(?:\\+91|0)?[6-9]\\d{9}$", message = "Invalid phone number. Use 10 digits (e.g. 9876543210)")
     private String phone;
 
     private String address;
