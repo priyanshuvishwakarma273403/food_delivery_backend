@@ -1,4 +1,6 @@
 package com.delivery.foodDelivery.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 import com.delivery.foodDelivery.enums.FoodCategory;
 import jakarta.persistence.*;

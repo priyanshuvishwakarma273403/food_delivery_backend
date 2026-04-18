@@ -1,7 +1,9 @@
 package com.delivery.foodDelivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,11 +58,13 @@ public class Restaurant extends BaseEntity {
     private boolean active = true;
 
     // One restaurant has many menu items
+    @JsonIgnore
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<MenuItem> menuItems = new ArrayList<>();
 
     // One restaurant has many orders
+    @JsonIgnore
     @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
