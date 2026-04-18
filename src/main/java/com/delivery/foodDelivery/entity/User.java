@@ -1,8 +1,10 @@
 package com.delivery.foodDelivery.entity;
 
 import com.delivery.foodDelivery.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,9 +34,11 @@ public class User extends BaseEntity {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     // Mapping to password_hash as well to satisfy existing DB constraints
+    @JsonIgnore
     @Column(name = "password_hash")
     private String passwordHash;
 
@@ -53,14 +57,17 @@ public class User extends BaseEntity {
     private String address;
 
     // One customer can have one cart
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Cart cart;
 
     // Wallet for Loyalty Coins
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Wallet wallet;
 
     // Order history
+    @JsonIgnore
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
