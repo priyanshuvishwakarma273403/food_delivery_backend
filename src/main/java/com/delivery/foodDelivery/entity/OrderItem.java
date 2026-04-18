@@ -1,7 +1,9 @@
 package com.delivery.foodDelivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 @Entity
 @Table(name = "order_items")
@@ -16,9 +18,11 @@ public class OrderItem extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "menu_item_id", nullable = false)

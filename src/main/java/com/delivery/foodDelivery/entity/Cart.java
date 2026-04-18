@@ -1,7 +1,9 @@
 package com.delivery.foodDelivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +21,11 @@ public class Cart extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
+
 
     /**
      * All items must be from the same restaurant.

@@ -1,7 +1,9 @@
 package com.delivery.foodDelivery.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+
 
 @Entity
 @Table(name = "wallets")
@@ -16,9 +18,11 @@ public class Wallet extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
 
     @Column(nullable = false)
     @Builder.Default
