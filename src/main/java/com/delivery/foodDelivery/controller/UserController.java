@@ -2,7 +2,7 @@ package com.delivery.foodDelivery.controller;
 
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.entity.User;
-import com.delivery.foodDelivery.enums.UserRole;
+import com.delivery.foodDelivery.enums.Role;
 import com.delivery.foodDelivery.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,8 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<User>> updateUserRole(
             @PathVariable Long id,
-            @RequestParam UserRole role) {
+            @RequestParam Role role) {
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setRole(role);
