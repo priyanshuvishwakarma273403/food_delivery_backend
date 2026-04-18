@@ -33,7 +33,9 @@ public class MenuItem extends BaseEntity {
     @Column(nullable = false)
     private FoodCategory category;
 
+    @Column(length = 1000)
     private String imageUrl;
+
 
     @Column(name = "is_available", nullable = false)
     @Builder.Default

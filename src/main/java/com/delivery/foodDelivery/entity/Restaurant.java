@@ -35,6 +35,7 @@ public class Restaurant extends BaseEntity {
     @Column(nullable = false)
     private String phone;
 
+    @Column(length = 1000)
     private String imageUrl;
 
     @Column(name = "rating")
