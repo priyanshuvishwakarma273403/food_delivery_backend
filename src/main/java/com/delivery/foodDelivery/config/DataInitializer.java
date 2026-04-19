@@ -13,7 +13,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class DataInitializer implements CommandLineRunner {
     private final RestaurantRepository restaurantRepository;
     private final MenuItemRepository menuItemRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Random random = new Random();
 
     @Override
     public void run(String... args) throws Exception {
@@ -42,87 +45,69 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Admin user seeded.");
         }
 
-        // Seed Sample Restaurants if empty
-        if (restaurantRepository.count() == 0) {
-            List<Restaurant> sampleRestaurants = List.of(
-                Restaurant.builder()
-                    .name("Pizza Palace")
-                    .address("Sector 62, Noida")
-                    .city("Noida")
-                    .cuisineType("Italian, Fast Food")
-                    .phone("0120-123456")
-                    .imageUrl("https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80")
-                    .rating(4.5)
-                    .avgDeliveryTime(30)
-                    .minOrderAmount(200.0)
-                    .open(true)
-                    .build(),
-                Restaurant.builder()
-                    .name("Burger King")
-                    .address("DLF Mall of India")
-                    .city("Noida")
-                    .cuisineType("Burgers, American")
-                    .phone("0120-654321")
-                    .imageUrl("https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&q=80")
-                    .rating(4.2)
-                    .avgDeliveryTime(25)
-                    .minOrderAmount(150.0)
-                    .open(true)
-                    .build(),
-                Restaurant.builder()
-                    .name("The Biryani Life")
-                    .address("Indirapuram, Ghaziabad")
-                    .city("Ghaziabad")
-                    .cuisineType("Biryani, North Indian")
-                    .phone("0120-987654")
-                    .imageUrl("https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?w=800&q=80")
-                    .rating(4.8)
-                    .avgDeliveryTime(40)
-                    .minOrderAmount(250.0)
-                    .open(true)
-                    .build()
-            );
-            restaurantRepository.saveAll(sampleRestaurants);
-            log.info("Restaurants seeded.");
-        }
-
-        // Seed Menu Items if empty
-        if (menuItemRepository.count() == 0) {
-            List<Restaurant> restaurants = restaurantRepository.findAll();
-            restaurants.forEach(r -> {
-                if (r.getName().equals("Pizza Palace")) {
-                    seedPizzaPalaceMenu(r.getId());
-                } else if (r.getName().equals("Burger King")) {
-                    seedBurgerKingMenu(r.getId());
-                } else if (r.getName().equals("The Biryani Life")) {
-                    seedBiryaniLifeMenu(r.getId());
-                }
-            });
-            log.info("Menu items seeded.");
+        // Seed Massive Data for Restaurants and MenuItems
+        if (restaurantRepository.count() < 100) {
+            seedMassiveData();
         }
     }
 
-    private void seedPizzaPalaceMenu(String rId) {
-        menuItemRepository.saveAll(List.of(
-            MenuItem.builder().name("Margherita Pizza").description("Classic cheese and tomato").price(299.0).imageUrl("https://images.unsplash.com/photo-1574071318508-1cdbad80ad50?w=500").category("VEG").restaurantId(rId).vegetarian(true).build(),
-            MenuItem.builder().name("Peppy Paneer").description("Spiced paneer, capsicum, onion").price(399.0).imageUrl("https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500").category("VEG").restaurantId(rId).vegetarian(true).build(),
-            MenuItem.builder().name("Chicken Dominator").description("Loaded with double chicken").price(499.0).imageUrl("https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500").category("NON_VEG").restaurantId(rId).vegetarian(false).build()
-        ));
-    }
+    private void seedMassiveData() {
+        log.info("Starting Massive Data Seeding: 100 Restaurants and 1000 Menu Items...");
+        
+        String[] restaurantNames = {
+            "Pizza Palace", "Burger King", "The Biryani Life", "Taco Bell", "Sushi Sam", "Pasta Perfection",
+            "Curry House", "Wok Hei", "Steak & Grill", "Vegan Vibes", "Dessert Heaven", "Biryani Blues",
+            "Momo Magic", "Tandoori Nights", "Burger Baron", "Pizza Hut", "Dosa Plaza", "Chai Point",
+            "The Salad Bar", "Smoothie Stop", "Noodle Station", "Kebab Korner", "BBQ Nation", "Punjab Grill"
+        };
+        
+        String[] cities = {"Noida", "Ghaziabad", "Delhi", "Gurgaon", "Mumbai", "Bangalore", "Pune", "Hyderabad"};
+        String[] cuisines = {"Indian", "Chinese", "Italian", "American", "Mexican", "Japanese", "Continental", "Thai"};
+        String[] categories = {"VEG", "NON_VEG", "DESSERT", "BEVERAGES", "SIDES"};
 
-    private void seedBurgerKingMenu(String rId) {
-        menuItemRepository.saveAll(List.of(
-            MenuItem.builder().name("Whopper").description("Flame-grilled beef patty").price(199.0).imageUrl("https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=500").category("NON_VEG").restaurantId(rId).vegetarian(false).build(),
-            MenuItem.builder().name("Veggie Burger").description("Delicious plant-based patty").price(149.0).imageUrl("https://images.unsplash.com/photo-1550547660-d9450f859349?w=500").category("VEG").restaurantId(rId).vegetarian(true).build(),
-            MenuItem.builder().name("French Fries").description("Classic salted fries").price(99.0).imageUrl("https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500").category("SIDES").restaurantId(rId).vegetarian(true).build()
-        ));
-    }
+        List<Restaurant> seededRestaurants = new ArrayList<>();
 
-    private void seedBiryaniLifeMenu(String rId) {
-        menuItemRepository.saveAll(List.of(
-            MenuItem.builder().name("Hyderabadi Chicken Biryani").description("Authentic slow-cooked biryani").price(349.0).imageUrl("https://images.unsplash.com/photo-1563379091339-03b21bc4a4f8?w=500").category("NON_VEG").restaurantId(rId).vegetarian(false).build(),
-            MenuItem.builder().name("Lucknowi Mutton Biryani").description("Fragrant and tender mutton").price(449.0).imageUrl("https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500").category("NON_VEG").restaurantId(rId).vegetarian(false).build(),
-            MenuItem.builder().name("Veg Dum Biryani").description("Spiced veggies with basmati rice").price(249.0).imageUrl("https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=500").category("VEG").restaurantId(rId).vegetarian(true).build()
-        ));
+        for (int i = 0; i < 100; i++) {
+            String name = restaurantNames[random.nextInt(restaurantNames.length)] + " " + (i + 1);
+            Restaurant restaurant = Restaurant.builder()
+                    .name(name)
+                    .address("Street " + (i + 1) + ", " + cities[random.nextInt(cities.length)])
+                    .city(cities[random.nextInt(cities.length)])
+                    .cuisineType(cuisines[random.nextInt(cuisines.length)] + ", " + cuisines[random.nextInt(cuisines.length)])
+                    .phone("9" + (100000000 + i))
+                    .imageUrl("https://images.unsplash.com/photo-" + (1500000000000L + random.nextInt(1000000)) + "?w=800&q=80")
+                    .rating(3.0 + (random.nextDouble() * 2.0))
+                    .avgDeliveryTime(20 + random.nextInt(40))
+                    .minOrderAmount(100.0 + random.nextInt(200))
+                    .open(true)
+                    .build();
+            
+            seededRestaurants.add(restaurantRepository.save(restaurant));
+        }
+
+        log.info("100 Restaurants seeded. Now seeding 1000 Menu Items...");
+
+        for (Restaurant r : seededRestaurants) {
+            List<MenuItem> items = new ArrayList<>();
+            for (int j = 0; j < 10; j++) {
+                boolean isVeg = random.nextBoolean();
+                String category = categories[random.nextInt(categories.length)];
+                
+                MenuItem item = MenuItem.builder()
+                        .name(r.getName().split(" ")[0] + " Special " + (j + 1))
+                        .description("Delicious " + category.toLowerCase() + " item from " + r.getName())
+                        .price(99.0 + random.nextInt(500))
+                        .imageUrl("https://images.unsplash.com/photo-" + (1500000000000L + random.nextInt(1000000)) + "?w=500")
+                        .category(category)
+                        .restaurantId(r.getId())
+                        .vegetarian(isVeg)
+                        .available(true)
+                        .build();
+                items.add(item);
+            }
+            menuItemRepository.saveAll(items);
+        }
+
+        log.info("Massive Seeding Completed: 100 Restaurants and 1000 Menu Items created!");
     }
 }

@@ -21,7 +21,6 @@ public class AdminController {
     private final KafkaService kafkaService;
 
     @PostMapping("/start")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> startSale(@Valid @RequestBody SaleRequest request) {
         SaleEventDTO saleEvent = SaleEventDTO.builder()
                 .title(request.getTitle())

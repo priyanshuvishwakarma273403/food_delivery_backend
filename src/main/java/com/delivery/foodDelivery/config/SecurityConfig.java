@@ -60,8 +60,10 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, "/restaurants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/menu/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/menu/**").permitAll() // Backdoor for some frontend calls
 
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/restaurants/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/restaurants/**").hasRole("ADMIN")
@@ -87,8 +89,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(origins); 
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token", "x-requested-with"));
-        configuration.setExposedHeaders(List.of("x-auth-token"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
