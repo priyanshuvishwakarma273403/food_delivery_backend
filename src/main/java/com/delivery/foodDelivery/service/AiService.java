@@ -18,13 +18,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiService {
 
-    @Value("${groq.api.key}")
+    @Value("${groq.api.key:}")
     private String apiKey;
 
-    @Value("${groq.api.url}")
+    @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
     private String apiUrl;
 
-    @Value("${groq.api.model}")
+    @Value("${groq.api.model:mixtral-8x7b-32768}")
     private String model;
 
     public String getPersonalizedGreeting(String userName) {
