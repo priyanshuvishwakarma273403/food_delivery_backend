@@ -1,4 +1,4 @@
-package com.delivery.foodDelivery.repository;
+package com.delivery.foodDelivery.repository.mongo;
 
 import com.delivery.foodDelivery.entity.Cart;
 import org.springframework.data.mongodb.repository.MongoRepository;

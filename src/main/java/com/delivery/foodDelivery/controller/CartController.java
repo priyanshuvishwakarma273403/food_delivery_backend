@@ -4,7 +4,7 @@ import com.delivery.foodDelivery.dto.request.CartItemRequest;
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.dto.response.CartResponse;
 import com.delivery.foodDelivery.entity.User;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -3,7 +3,7 @@ package com.delivery.foodDelivery.controller;
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.enums.Role;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

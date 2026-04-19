@@ -1,7 +1,7 @@
 package com.delivery.foodDelivery.security;
 
 import com.delivery.foodDelivery.entity.User;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;

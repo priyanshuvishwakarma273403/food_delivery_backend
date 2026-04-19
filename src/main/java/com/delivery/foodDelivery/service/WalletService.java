@@ -2,7 +2,7 @@ package com.delivery.foodDelivery.service;
 
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.entity.Wallet;
-import com.delivery.foodDelivery.repository.WalletRepository;
+import com.delivery.foodDelivery.repository.jpa.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

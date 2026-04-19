@@ -3,7 +3,7 @@ package com.delivery.foodDelivery.controller;
 import com.delivery.foodDelivery.dto.request.OrderRequest;
 import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.dto.response.OrderResponse;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

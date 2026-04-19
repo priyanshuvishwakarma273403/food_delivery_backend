@@ -7,7 +7,7 @@ import com.delivery.foodDelivery.dto.response.UserResponse;
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.enums.Role;
 import com.delivery.foodDelivery.exception.BusinessException;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import com.delivery.foodDelivery.security.JwtUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

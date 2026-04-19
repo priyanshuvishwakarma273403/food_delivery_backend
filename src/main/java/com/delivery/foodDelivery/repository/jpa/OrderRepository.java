@@ -1,4 +1,4 @@
-package com.delivery.foodDelivery.repository;
+package com.delivery.foodDelivery.repository.jpa;
 
 import com.delivery.foodDelivery.entity.Order;
 import com.delivery.foodDelivery.enums.OrderStatus;

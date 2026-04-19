@@ -3,7 +3,7 @@ package com.delivery.foodDelivery.service;
 import com.delivery.foodDelivery.config.KafkaConfig;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.entity.User;
-import com.delivery.foodDelivery.repository.UserRepository;
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -5,7 +5,7 @@ import com.delivery.foodDelivery.dto.response.MenuItemResponse;
 import com.delivery.foodDelivery.entity.MenuItem;
 import com.delivery.foodDelivery.entity.Restaurant;
 import com.delivery.foodDelivery.exception.ResourceNotFoundException;
-import com.delivery.foodDelivery.repository.MenuItemRepository;
+import com.delivery.foodDelivery.repository.mongo.MenuItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
