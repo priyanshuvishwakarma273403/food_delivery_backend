@@ -65,6 +65,26 @@ public class DataInitializer implements CommandLineRunner {
         String[] cuisines = {"Indian", "Chinese", "Italian", "American", "Mexican", "Japanese", "Continental", "Thai"};
         String[] categories = {"VEG", "NON_VEG", "DESSERT", "BEVERAGES", "SIDES"};
 
+        String[] foodImages = {
+            "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", // Pizza
+            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80", // Burger
+            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80", // Healthy
+            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80", // Grilled
+            "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80", // Pizza 2
+            "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", // Dessert
+            "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&q=80", // Salad
+            "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80", // Gourmet
+            "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80"  // Salad 2
+        };
+
+        String[] restaurantImages = {
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+            "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80",
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
+            "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80"
+        };
+
         List<Restaurant> seededRestaurants = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
@@ -75,7 +95,7 @@ public class DataInitializer implements CommandLineRunner {
                     .city(cities[random.nextInt(cities.length)])
                     .cuisineType(cuisines[random.nextInt(cuisines.length)] + ", " + cuisines[random.nextInt(cuisines.length)])
                     .phone("9" + (100000000 + i))
-                    .imageUrl("https://images.unsplash.com/photo-" + (1500000000000L + random.nextInt(1000000)) + "?w=800&q=80")
+                    .imageUrl(restaurantImages[random.nextInt(restaurantImages.length)])
                     .rating(3.0 + (random.nextDouble() * 2.0))
                     .avgDeliveryTime(20 + random.nextInt(40))
                     .minOrderAmount(100.0 + random.nextInt(200))
@@ -97,7 +117,7 @@ public class DataInitializer implements CommandLineRunner {
                         .name(r.getName().split(" ")[0] + " Special " + (j + 1))
                         .description("Delicious " + category.toLowerCase() + " item from " + r.getName())
                         .price(99.0 + random.nextInt(500))
-                        .imageUrl("https://images.unsplash.com/photo-" + (1500000000000L + random.nextInt(1000000)) + "?w=500")
+                        .imageUrl(foodImages[random.nextInt(foodImages.length)])
                         .category(category)
                         .restaurantId(r.getId())
                         .vegetarian(isVeg)

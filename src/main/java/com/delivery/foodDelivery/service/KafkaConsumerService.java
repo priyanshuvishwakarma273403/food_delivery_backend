@@ -28,7 +28,7 @@ public class KafkaConsumerService {
     public void consumeSaleEvent(SaleEventDTO saleEvent) {
         log.info("Consumed sale event: {}", saleEvent.getTitle());
 
-        int pageSize = 1000; // Batch size for fetching users
+        int pageSize = 50; // Smaller batch size to prevent OOM on Render
         int pageNumber = 0;
         Page<User> userPage;
 
@@ -36,8 +36,7 @@ public class KafkaConsumerService {
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
             userPage = userRepository.findByActiveTrue(pageable); 
 
-
-            log.info("Processing batch {} with {} users", pageNumber, userPage.getNumberOfElements());
+            log.info("Processing batch {} with {} active users", pageNumber, userPage.getNumberOfElements());
 
             userPage.getContent().forEach(user -> {
                 if (user.getEmail() != null && !user.getEmail().isEmpty()) {
@@ -46,6 +45,9 @@ public class KafkaConsumerService {
             });
 
             pageNumber++;
+            // Small pause to give JVM/GC breathing room
+            try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+            
         } while (userPage.hasNext());
 
         log.info("Completed processing all users for sale: {}", saleEvent.getTitle());
