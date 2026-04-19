@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import com.delivery.foodDelivery.dto.SaleEventDTO;
+import com.delivery.foodDelivery.config.KafkaConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class KafkaService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     /**
      * Send a message to a specific topic
@@ -49,5 +53,14 @@ public class KafkaService {
         String message = String.format("{\"deliveryId\": %d, \"lat\": %f, \"lng\": %f, \"timestamp\": %d}", 
                 deliveryId, lat, lng, System.currentTimeMillis());
         sendMessage("delivery-locations", message);
+    }
+
+    public void sendSaleNotification(SaleEventDTO saleEvent) {
+        try {
+            String json = objectMapper.writeValueAsString(saleEvent);
+            sendMessage(KafkaConfig.SALE_TOPIC, json);
+        } catch (Exception e) {
+            log.error("Failed to serialize sale event: {}", e.getMessage());
+        }
     }
 }

@@ -12,12 +12,17 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 
+import com.delivery.foodDelivery.repository.jpa.UserRepository;
+import com.delivery.foodDelivery.entity.User;
+import java.util.List;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final UserRepository userRepository;
     
     public void sendVerificationEmail(String toEmail, String otp) {
         try {
@@ -74,5 +79,20 @@ public class EmailService {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
             // In a real scenario, you might want to re-throw or handle differently
         }
+    }
+
+    /**
+     * Sends sale notification to all registered users.
+     */
+    public void sendBulkSaleEmails(SaleEventDTO saleEvent) {
+        log.info("Triggering bulk sale emails for: {}", saleEvent.getTitle());
+        List<User> users = userRepository.findAll();
+        
+        for (User user : users) {
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                sendSaleNotificationEmail(user.getEmail(), user.getName(), saleEvent);
+            }
+        }
+        log.info("Finished triggering emails for {} users", users.size());
     }
 }
