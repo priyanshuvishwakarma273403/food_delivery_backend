@@ -2,7 +2,10 @@ package com.delivery.foodDelivery.repository;
 
 import com.delivery.foodDelivery.entity.User;
 import com.delivery.foodDelivery.enums.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,5 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRole(Role role);
 
     List<User> findByActiveTrue();
+
+    Page<User> findByActiveTrue(Pageable pageable);
+
 
 }
