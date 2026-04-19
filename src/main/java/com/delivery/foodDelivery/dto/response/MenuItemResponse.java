@@ -16,6 +16,7 @@ public class MenuItemResponse {
     private Double price;
     private String category;
     private String imageUrl;
+    private String image; // Alias for frontend
     private boolean available;
     private String restaurantId;
     private String restaurantName;

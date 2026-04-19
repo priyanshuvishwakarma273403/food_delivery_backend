@@ -66,6 +66,13 @@ public class MenuItemService {
                 .stream().map(item -> toResponse(item, null)).collect(Collectors.toList());
     }
 
+    public List<MenuItemResponse> getAllAvailableMenuItems() {
+        return menuItemRepository.findAll().stream()
+                .filter(MenuItem::isAvailable)
+                .map(item -> toResponse(item, null))
+                .collect(Collectors.toList());
+    }
+
     public MenuItem findById(String id) {
         return menuItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MenuItem", id));
@@ -79,6 +86,7 @@ public class MenuItemService {
                 .price(item.getPrice())
                 .category(item.getCategory())
                 .imageUrl(item.getImageUrl())
+                .image(item.getImageUrl())
                 .available(item.isAvailable())
                 .restaurantId(item.getRestaurantId())
                 .restaurantName(restaurantName)

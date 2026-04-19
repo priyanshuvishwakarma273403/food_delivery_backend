@@ -42,6 +42,11 @@ public class MenuItemController {
                 menuItemService.getMenuByRestaurant(restaurantId)));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<MenuItemResponse>>> getAllMenu() {
+        return ResponseEntity.ok(ApiResponse.success(menuItemService.getAllAvailableMenuItems()));
+    }
+
 
 
     // ── Admin ─────────────────────────────────────

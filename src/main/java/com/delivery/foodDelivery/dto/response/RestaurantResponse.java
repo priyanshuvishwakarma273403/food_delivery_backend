@@ -17,8 +17,10 @@ public class RestaurantResponse {
     private String address;
     private String city;
     private String cuisineType;
+    private String cuisine; // Alias for frontend
     private String phone;
     private String imageUrl;
+    private String image; // Alias for frontend
     private Double rating;
     private Integer avgDeliveryTime;
     private Double minOrderAmount;
