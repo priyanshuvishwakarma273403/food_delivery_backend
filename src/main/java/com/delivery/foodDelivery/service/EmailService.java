@@ -55,20 +55,51 @@ public class EmailService {
                     MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, 
                     StandardCharsets.UTF_8.name());
 
-            String content = String.format(
-                    "<html><body>" +
-                    "<h1>Hi %s,</h1>" +
-                    "<h2>%s</h2>" +
-                    "<p>%s</p>" +
-                    "<p>Use Promo Code: <strong>%s</strong> for <strong>%.0f%% OFF!</strong></p>" +
-                    "<br><p>Enjoy your meal!</p>" +
-                    "</body></html>",
-                    userName, saleEvent.getTitle(), saleEvent.getMessage(), 
-                    saleEvent.getPromoCode(), saleEvent.getDiscountPercentage()
-            );
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: linear-gradient(135deg, #FF9933 0%, #FF5500 100%); color: white; padding: 40px 20px; text-align: center; }" +
+                    "  .header h1 { margin: 0; font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }" +
+                    "  .content { padding: 30px; background-color: #ffffff; color: #333; line-height: 1.6; }" +
+                    "  .sale-box { background: #FFF8E1; border: 2px dashed #FF9933; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }" +
+                    "  .promo-code { font-size: 24px; font-weight: bold; color: #D32F2F; letter-spacing: 2px; }" +
+                    "  .discount { font-size: 48px; font-weight: 800; color: #FF5500; margin: 10px 0; }" +
+                    "  .btn { display: inline-block; padding: 15px 30px; background-color: #FF5500; color: white !important; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 20px; box-shadow: 0 4px 15px rgba(255,85,0,0.3); }" +
+                    "  .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }" +
+                    "  .diya { font-size: 40px; margin-bottom: 10px; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'>" +
+                    "      <div class='diya'>🪔✨🪔</div>" +
+                    "      <h1>" + saleEvent.getTitle() + "</h1>" +
+                    "    </div>" +
+                    "    <div class='content'>" +
+                    "      <h3>Namaste " + userName + "!</h3>" +
+                    "      <p>" + saleEvent.getMessage() + "</p>" +
+                    "      <div class='sale-box'>" +
+                    "        <p style='margin:0; font-weight:600; color:#555;'>GET AN EXCLUSIVE</p>" +
+                    "        <div class='discount'>" + String.format("%.0f%% OFF", saleEvent.getDiscountPercentage()) + "</div>" +
+                    "        <p style='margin:5px 0;'>Use Code: <span class='promo-code'>" + saleEvent.getPromoCode() + "</span></p>" +
+                    "      </div>" +
+                    "      <p style='text-align:center;'>" +
+                    "        <a href='https://tomato-food.app' class='btn'>Order Now & Celebrate!</a>" +
+                    "      </p>" +
+                    "      <p>Wishing you and your family a very Happy and Prosperous Diwali! May your plate always be full of joy and delicious food.</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>" +
+                    "      <p>&copy; 2026 Tomato Food Delivery. All Rights Reserved.</p>" +
+                    "      <p>If you have any questions, contact us at support@tomato.com</p>" +
+                    "    </div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
 
             helper.setTo(toEmail);
-            helper.setSubject("🔥 Flash Sale Started: " + saleEvent.getTitle() + " 🔥");
+            helper.setSubject("🪔 Special Diwali Offer: " + saleEvent.getTitle() + " 🪔");
             helper.setText(content, true);
             helper.setFrom("no-reply@fooddelivery.com");
 
