@@ -18,6 +18,27 @@ import java.nio.charset.StandardCharsets;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    
+    public void sendVerificationEmail(String toEmail, String otp) {
+        try {
+            log.info("Sending verification OTP to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(toEmail);
+            helper.setSubject("Your FoodDelivery Verification OTP");
+            helper.setText("<h1>Welcome to FoodDelivery!</h1>" +
+                    "<p>Your verification code is: <strong>" + otp + "</strong></p>" +
+                    "<p>This code is valid for 5 minutes.</p>", true);
+
+            mailSender.send(message);
+            log.info("OTP sent successfully to: {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send OTP to {}: {}", toEmail, e.getMessage());
+            throw new RuntimeException("Email sending failed");
+        }
+    }
+
 
     @Async("emailExecutor")
     public void sendSaleNotificationEmail(String toEmail, String userName, SaleEventDTO saleEvent) {
