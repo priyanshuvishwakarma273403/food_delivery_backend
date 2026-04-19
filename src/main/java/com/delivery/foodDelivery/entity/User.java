@@ -5,17 +5,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "users",
-        indexes = {
-                @Index(name = "idx_user_email", columnList = "email", unique = true),
-                @Index(name = "idx_user_phone", columnList = "phone")
-        })
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,48 +21,34 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
     @JsonIgnore
     private String password;
 
-    // Mapping to password_hash as well to satisfy existing DB constraints
     @JsonIgnore
-    @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(nullable = false)
+    @Column(unique = true)
     private String phone;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
-    @Column(name = "is_active")
     @Builder.Default
     private boolean active = true;
 
-    // Delivery address for customers
     private String address;
 
-    // One customer can have one cart
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Cart cart;
-
-    // Wallet for Loyalty Coins
-    @JsonIgnore
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Wallet wallet;
 
-    // Order history
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     @JsonIgnore
-    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
 

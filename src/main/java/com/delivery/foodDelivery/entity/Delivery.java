@@ -7,8 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "deliveries",
-        indexes = { @Index(name = "idx_delivery_partner", columnList = "partner_id") })
+@Table(name = "deliveries")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,27 +20,26 @@ public class Delivery extends BaseEntity {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id")
+    @JoinColumn(name = "delivery_partner_id")
     private DeliveryPartner deliveryPartner;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private DeliveryStatus status = DeliveryStatus.ASSIGNED;
+    private DeliveryStatus status;
 
-    private LocalDateTime assignedAt;
-    private LocalDateTime acceptedAt;
-    private LocalDateTime pickedUpAt;
-    private LocalDateTime deliveredAt;
-
-    // Live location tracking
     private Double currentLatitude;
+    
     private Double currentLongitude;
 
-    private String rejectionReason;
+    private LocalDateTime assignedAt;
+    
+    private LocalDateTime acceptedAt;
+    
+    private LocalDateTime pickedUpAt;
+    
+    private LocalDateTime deliveredAt;
 
 }

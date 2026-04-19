@@ -1,17 +1,15 @@
 package com.delivery.foodDelivery.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "restaurants",
-        indexes = { @Index(name = "idx_restaurant_name", columnList = "name") })
+@Document(collection = "restaurants")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,54 +18,31 @@ import java.util.List;
 public class Restaurant extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
+    @Indexed
     private String name;
 
-    @Column(nullable = false)
-    private String address;
-
-    @Column(nullable = false)
-    private String city;
-
     private String cuisineType;
-
-    @Column(nullable = false)
-    private String phone;
-
-    @Column(length = 1000)
+    
     private String imageUrl;
-
-    @Column(name = "rating")
+    
     private Double rating;
-
-    @Column(name = "avg_delivery_time_minutes")
+    
     private Integer avgDeliveryTime;
-
-    @Column(name = "min_order_amount")
+    
+    private String address;
+    
+    private String city;
+    
+    private String phone;
+    
     private Double minOrderAmount;
 
-    @Column(name = "is_open", nullable = false)
     @Builder.Default
     private boolean open = true;
 
-    @Column(name = "is_active", nullable = false)
-    @Builder.Default
-    private boolean active = true;
-
-    // One restaurant has many menu items
-    @JsonIgnore
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @DBRef(lazy = true)
     @Builder.Default
     private List<MenuItem> menuItems = new ArrayList<>();
-
-    // One restaurant has many orders
-    @JsonIgnore
-    @OneToMany(mappedBy = "restaurant", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Order> orders = new ArrayList<>();
-
-
 }

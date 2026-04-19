@@ -1,17 +1,10 @@
 package com.delivery.foodDelivery.entity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
-import com.delivery.foodDelivery.enums.FoodCategory;
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "menu_items",
-        indexes = {
-                @Index(name = "idx_menuitem_restaurant", columnList = "restaurant_id"),
-                @Index(name = "idx_menuitem_category", columnList = "category")
-        })
+@Document(collection = "menu_items")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,37 +13,22 @@ import lombok.*;
 public class MenuItem extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
     private String name;
-
+    
     private String description;
-
-    @Column(nullable = false)
+    
     private Double price;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private FoodCategory category;
-
-    @Column(length = 1000)
+    
     private String imageUrl;
+    
+    private String category;
 
-
-    @Column(name = "is_available", nullable = false)
     @Builder.Default
     private boolean available = true;
 
-    @Column(name = "stock_quantity")
-    @Builder.Default
-    private Integer stockQuantity = 100; // Default stock level
+    private boolean vegetarian;
 
-    private String menuCategory; // e.g. "Biryani", "Starters"
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
-
+    private String restaurantId;
 }

@@ -8,7 +8,6 @@ import com.delivery.foodDelivery.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +19,6 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    @Transactional
     public RestaurantResponse addRestaurant(RestaurantRequest request) {
         Restaurant restaurant = Restaurant.builder()
                 .name(request.getName())
@@ -38,8 +36,7 @@ public class RestaurantService {
         return toResponse(restaurant);
     }
 
-    @Transactional
-    public RestaurantResponse updateRestaurant(Long id, RestaurantRequest request) {
+    public RestaurantResponse updateRestaurant(String id, RestaurantRequest request) {
         Restaurant restaurant = findById(id);
 
         restaurant.setName(request.getName());
@@ -54,45 +51,38 @@ public class RestaurantService {
         return toResponse(restaurantRepository.save(restaurant));
     }
 
-    @Transactional
-    public void deleteRestaurant(Long id) {
+    public void deleteRestaurant(String id) {
         Restaurant restaurant = findById(id);
-        restaurant.setActive(false);    // Soft delete
-        restaurantRepository.save(restaurant);
-        log.info("Restaurant soft-deleted: id={}", id);
+        restaurantRepository.delete(restaurant); // Or keep active=false if using soft delete
+        log.info("Restaurant deleted: id={}", id);
     }
 
-    @Transactional
-    public RestaurantResponse toggleOpenStatus(Long id) {
+    public RestaurantResponse toggleOpenStatus(String id) {
         Restaurant restaurant = findById(id);
         restaurant.setOpen(!restaurant.isOpen());
         return toResponse(restaurantRepository.save(restaurant));
     }
 
-    @Transactional(readOnly = true)
-    public List<RestaurantResponse> getAllOpenRestaurants() {
-        return restaurantRepository.findByActiveTrueAndOpenTrue()
+    public List<RestaurantResponse> getAllRestaurants() {
+        return restaurantRepository.findAll()
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public List<RestaurantResponse> getRestaurantsByCity(String city) {
-        return restaurantRepository.findByCityAndActiveTrueAndOpenTrue(city)
+        return restaurantRepository.findByCity(city)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public List<RestaurantResponse> searchRestaurants(String keyword) {
-        return restaurantRepository.searchRestaurants(keyword)
+        return restaurantRepository.findByNameContainingIgnoreCase(keyword)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public RestaurantResponse getRestaurantById(Long id) {
+    public RestaurantResponse getRestaurantById(String id) {
         return toResponse(findById(id));
     }
 
-    public Restaurant findById(Long id) {
+    public Restaurant findById(String id) {
         return restaurantRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Restaurant", id));
     }
@@ -113,5 +103,4 @@ public class RestaurantService {
                 .createdAt(r.getCreatedDate())
                 .build();
     }
-
 }

@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner,Long> {
+public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner, Long> {
     Optional<DeliveryPartner> findByUserId(Long userId);
-
-    List<DeliveryPartner> findByAvailableTrue();
-
+    List<DeliveryPartner> findByCurrentCityAndAvailableTrue(String city);
 }

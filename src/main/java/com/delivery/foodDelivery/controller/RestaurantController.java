@@ -39,11 +39,11 @@ public class RestaurantController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<RestaurantResponse>>> getAllRestaurants() {
-        return ResponseEntity.ok(ApiResponse.success(restaurantService.getAllOpenRestaurants()));
+        return ResponseEntity.ok(ApiResponse.success(restaurantService.getAllRestaurants()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<RestaurantResponse>> getRestaurantById(@PathVariable String id) {
         return ResponseEntity.ok(ApiResponse.success(restaurantService.getRestaurantById(id)));
     }
 
@@ -73,21 +73,21 @@ public class RestaurantController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<RestaurantResponse>> updateRestaurant(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody RestaurantRequest request) {
         return ResponseEntity.ok(ApiResponse.success(restaurantService.updateRestaurant(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteRestaurant(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteRestaurant(@PathVariable String id) {
         restaurantService.deleteRestaurant(id);
         return ResponseEntity.ok(ApiResponse.success("Restaurant deleted successfully", null));
     }
 
     @PatchMapping("/{id}/toggle")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<RestaurantResponse>> toggleOpenStatus(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<RestaurantResponse>> toggleOpenStatus(@PathVariable String id) {
         return ResponseEntity.ok(ApiResponse.success(restaurantService.toggleOpenStatus(id)));
     }
 }

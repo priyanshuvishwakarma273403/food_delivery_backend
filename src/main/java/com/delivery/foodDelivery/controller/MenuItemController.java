@@ -37,25 +37,19 @@ public class MenuItemController {
 
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<ApiResponse<List<MenuItemResponse>>> getMenu(
-            @PathVariable Long restaurantId) {
+            @PathVariable String restaurantId) {
         return ResponseEntity.ok(ApiResponse.success(
                 menuItemService.getMenuByRestaurant(restaurantId)));
     }
 
-    @GetMapping("/restaurant/{restaurantId}/category/{category}")
-    public ResponseEntity<ApiResponse<List<MenuItemResponse>>> getMenuByCategory(
-            @PathVariable Long restaurantId,
-            @PathVariable String category) {
-        return ResponseEntity.ok(ApiResponse.success(
-                menuItemService.getMenuByCategory(restaurantId, category)));
-    }
+
 
     // ── Admin ─────────────────────────────────────
 
     @PostMapping("/restaurant/{restaurantId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> addMenuItem(
-            @PathVariable Long restaurantId,
+            @PathVariable String restaurantId,
             @Valid @RequestBody MenuItemRequest request) {
         MenuItemResponse response = menuItemService.addMenuItem(restaurantId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -65,14 +59,14 @@ public class MenuItemController {
     @PutMapping("/{itemId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> updateMenuItem(
-            @PathVariable Long itemId,
+            @PathVariable String itemId,
             @Valid @RequestBody MenuItemRequest request) {
         return ResponseEntity.ok(ApiResponse.success(menuItemService.updateMenuItem(itemId, request)));
     }
 
     @DeleteMapping("/{itemId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteMenuItem(@PathVariable Long itemId) {
+    public ResponseEntity<ApiResponse<Void>> deleteMenuItem(@PathVariable String itemId) {
         menuItemService.deleteMenuItem(itemId);
         return ResponseEntity.ok(ApiResponse.success("Menu item removed", null));
     }
@@ -80,7 +74,7 @@ public class MenuItemController {
     @PatchMapping("/{itemId}/toggle")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MenuItemResponse>> toggleAvailability(
-            @PathVariable Long itemId) {
+            @PathVariable String itemId) {
         return ResponseEntity.ok(ApiResponse.success(menuItemService.toggleAvailability(itemId)));
     }
 }

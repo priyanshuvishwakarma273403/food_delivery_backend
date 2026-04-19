@@ -10,12 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
-
     Optional<Delivery> findByOrderId(Long orderId);
-
-    List<Delivery> findByDeliveryPartnerId(Long partnerId);
-
-    List<Delivery> findByDeliveryPartnerIdAndStatus(Long partnerId, DeliveryStatus status);
-
-
+    List<Delivery> findByDeliveryPartnerId(Long deliveryPartnerId);
+    List<Delivery> findByStatus(DeliveryStatus status);
 }

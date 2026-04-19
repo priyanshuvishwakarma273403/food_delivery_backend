@@ -1,9 +1,7 @@
 package com.delivery.foodDelivery.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
 
 @Entity
 @Table(name = "delivery_partners")
@@ -18,24 +16,22 @@ public class DeliveryPartner extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
-    private String vehicleType;        // BIKE, BICYCLE, CAR
     private String vehicleNumber;
 
-    @Column(name = "is_available", nullable = false)
+    private String vehicleType;
+
     @Builder.Default
     private boolean available = true;
 
-    // Live location (updated via WebSocket)
-    private Double currentLatitude;
-    private Double currentLongitude;
+    private String currentCity;
 
-    private Double rating;
     private Integer totalDeliveries;
 
+    private Double currentLatitude;
+
+    private Double currentLongitude;
 }

@@ -21,13 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Core order lifecycle management:
- *  - Place order from cart
- *  - Update order status (admin / restaurant)
- *  - Cancel order with refund
- *  - Order history for customer and admin
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -39,43 +32,46 @@ public class OrderService {
     private final PaymentService      paymentService;
     private final KafkaService        kafkaService;
     private final WalletService       walletService;
-
-    // ──────────────────────────────────────────────
-    // Place Order
-    // ──────────────────────────────────────────────
+    private final RestaurantService   restaurantService;
+    private final MenuItemService     menuItemService;
 
     @Transactional
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {
 
         // 1. Load and validate cart
-        Cart cart = cartService.getOrCreateCart(customerId);
+        Cart cart = cartService.getOrCreateCart(String.valueOf(customerId));
         if (cart.getItems().isEmpty()) {
             throw new BusinessException("Cannot place order: cart is empty.");
         }
 
-        Restaurant restaurant = cart.getRestaurant();
+        // Assuming all items are from the same restaurant. 
+        // We get the restaurant ID from the first item.
+        String firstMenuItemId = cart.getItems().get(0).getMenuItemId();
+        MenuItem firstMenuItem = menuItemService.findById(firstMenuItemId);
+        String restaurantId = firstMenuItem.getRestaurantId();
+        
+        Restaurant restaurant = restaurantService.findById(restaurantId);
         if (!restaurant.isOpen()) {
             throw new BusinessException("Restaurant is currently closed.");
         }
 
-        double total = cart.getTotalPrice();
+        double total = cart.getTotalAmount();
         double coinsToUse = 0.0;
         
         // Handle Tomato Coins redemption
         if (request.isUseCoins()) {
             Wallet wallet = walletService.getWalletByUserId(customerId);
-            coinsToUse = Math.min(wallet.getBalance(), total); // Cannot use more coins than total price
+            coinsToUse = Math.min(wallet.getBalance(), total); 
             walletService.spendCoins(customerId, coinsToUse);
             total -= coinsToUse;
             log.info("Used {} Tomato Coins for user {}. New total: {}", coinsToUse, customerId, total);
         }
 
         if (total < restaurant.getMinOrderAmount()) {
-            throw new BusinessException(
-                    "Minimum order amount is ₹" + restaurant.getMinOrderAmount());
+            throw new BusinessException("Minimum order amount is ₹" + restaurant.getMinOrderAmount());
         }
 
-        // 2. Process payment (Now for the discounted total)
+        // 2. Process payment
         PaymentResponse payment = paymentService.processPayment(
                 null, total, request.getPaymentMethod(), request.getPaymentToken());
 
@@ -89,7 +85,7 @@ public class OrderService {
 
         Order order = Order.builder()
                 .customer(customer)
-                .restaurant(restaurant)
+                .restaurantId(restaurantId)
                 .deliveryAddress(request.getDeliveryAddress())
                 .totalAmount(total)
                 .paymentStatus(PaymentStatus.valueOf(payment.getStatus()))
@@ -101,13 +97,13 @@ public class OrderService {
                 .finalAmount(total)
                 .build();
 
-        // 4. Convert cart items → order items (price snapshot)
+        // 4. Convert cart items → order items 
         List<OrderItem> orderItems = cart.getItems().stream()
                 .map(ci -> OrderItem.builder()
                         .order(order)
-                        .menuItem(ci.getMenuItem())
+                        .menuItemId(ci.getMenuItemId())
                         .quantity(ci.getQuantity())
-                        .priceAtOrderTime(ci.getMenuItem().getPrice())
+                        .priceAtOrderTime(ci.getPrice())
                         .build())
                 .collect(Collectors.toList());
         order.setOrderItems(orderItems);
@@ -115,7 +111,7 @@ public class OrderService {
         Order saved = orderRepository.save(order);
 
         // 5. Clear cart
-        cartService.clearCart(customerId);
+        cartService.clearCart(String.valueOf(customerId));
 
         // 6. Reward Loyalty Coins (1% cashback)
         double rewardCoins = Math.floor(total * 0.01); 
@@ -125,17 +121,12 @@ public class OrderService {
 
         log.info("Order placed: id={} customer={} amount={} (Rewards: {})", saved.getId(), customerId, total, rewardCoins);
         
-        // Kafka: Broadcast new order event
         kafkaService.sendMessage("order-events", 
-            String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": %d, \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
-            saved.getId(), customerId, saved.getRestaurant().getId(), total, System.currentTimeMillis()));
+            String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": \"%s\", \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
+            saved.getId(), customerId, restaurantId, total, System.currentTimeMillis()));
 
-        return toResponse(saved);
+        return toResponse(saved, restaurant.getName());
     }
-
-    // ──────────────────────────────────────────────
-    // Status Updates (Admin / Restaurant)
-    // ──────────────────────────────────────────────
 
     @Transactional
     public OrderResponse updateOrderStatus(Long orderId, String newStatusStr) {
@@ -146,17 +137,16 @@ public class OrderService {
         Order updated = orderRepository.save(order);
         log.info("Order {} status → {}", orderId, newStatus);
 
-        // Kafka: Broadcast status change event
         kafkaService.sendOrderStatusUpdate(orderId, newStatus.name());
 
-        return toResponse(updated);
+        Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
+        return toResponse(updated, restaurant.getName());
     }
 
     @Transactional
     public OrderResponse cancelOrder(Long orderId, Long requestingUserId) {
         Order order = findById(orderId);
 
-        // Only the customer who placed it or admin can cancel
         if (!order.getCustomer().getId().equals(requestingUserId)) {
             throw new UnauthorizedException("You are not allowed to cancel this order.");
         }
@@ -168,53 +158,42 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CANCELLED);
 
-        // Issue refund if already paid
         if (order.getPaymentStatus() == PaymentStatus.SUCCESS) {
             paymentService.processRefund(order.getPaymentId(), order.getTotalAmount());
             order.setPaymentStatus(PaymentStatus.REFUNDED);
         }
 
-        log.info("Order {} cancelled by user {}", orderId, requestingUserId);
-        return toResponse(orderRepository.save(order));
+        Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
+        return toResponse(orderRepository.save(order), restaurant.getName());
     }
-
-    // ──────────────────────────────────────────────
-    // Queries
-    // ──────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId, Long requestingUserId) {
         Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
-        // Customers can only view their own orders
         if (!order.getCustomer().getId().equals(requestingUserId)) {
             throw new UnauthorizedException("Access denied to order: " + orderId);
         }
-        return toResponse(order);
+        Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
+        return toResponse(order, restaurant.getName());
     }
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrderHistory(Long customerId) {
         return orderRepository.findByCustomerIdOrderByCreatedDateDesc(customerId)
-                .stream().map(this::toResponse).collect(Collectors.toList());
+                .stream().map(o -> {
+                    Restaurant r = restaurantService.findById(o.getRestaurantId());
+                    return toResponse(o, r.getName());
+                }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<OrderResponse> getOrdersByRestaurant(Long restaurantId) {
+    public List<OrderResponse> getOrdersByRestaurant(String restaurantId) {
+        Restaurant r = restaurantService.findById(restaurantId);
         return orderRepository.findByRestaurantIdOrderByCreatedDateDesc(restaurantId)
-                .stream().map(this::toResponse).collect(Collectors.toList());
+                .stream().map(o -> toResponse(o, r.getName())).collect(Collectors.toList());
     }
-
-    @Transactional(readOnly = true)
-    public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll()
-                .stream().map(this::toResponse).collect(Collectors.toList());
-    }
-
-    // ──────────────────────────────────────────────
-    // Internal helpers
-    // ──────────────────────────────────────────────
 
     public Order findById(Long orderId) {
         return orderRepository.findById(orderId)
@@ -229,15 +208,11 @@ public class OrderService {
         }
     }
 
-    /**
-     * Enforces a forward-only state machine for order status.
-     * PLACED → CONFIRMED → PREPARING → READY_FOR_PICKUP → OUT_FOR_DELIVERY → DELIVERED
-     */
     private void validateStatusTransition(OrderStatus current, OrderStatus next) {
         if (current == OrderStatus.CANCELLED || current == OrderStatus.DELIVERED) {
             throw new BusinessException("Cannot change status of a " + current + " order.");
         }
-        if (next == OrderStatus.CANCELLED) return;  // cancellation allowed from most states
+        if (next == OrderStatus.CANCELLED) return;  
 
         int currentOrdinal = current.ordinal();
         int nextOrdinal    = next.ordinal();
@@ -247,20 +222,22 @@ public class OrderService {
         }
     }
 
-    public OrderResponse toResponse(Order o) {
+    public OrderResponse toResponse(Order o, String restaurantName) {
         List<OrderItemResponse> itemResponses = o.getOrderItems().stream()
-                .map(i -> OrderItemResponse.builder()
-                        .id(i.getId())
-                        .menuItemId(i.getMenuItem().getId())
-                        .menuItemName(i.getMenuItem().getName())
-                        .menuItemImage(i.getMenuItem().getImageUrl())
-                        .quantity(i.getQuantity())
-                        .priceAtOrderTime(i.getPriceAtOrderTime())
-                        .subtotal(i.getSubtotal())
-                        .build())
+                .map(i -> {
+                    MenuItem mi = menuItemService.findById(i.getMenuItemId());
+                    return OrderItemResponse.builder()
+                            .id(i.getId())
+                            .menuItemId(i.getMenuItemId())
+                            .menuItemName(mi.getName())
+                            .menuItemImage(mi.getImageUrl())
+                            .quantity(i.getQuantity())
+                            .priceAtOrderTime(i.getPriceAtOrderTime())
+                            .subtotal(i.getSubtotal())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
-        // Map delivery if present
         DeliveryResponse deliveryResponse = null;
         if (o.getDelivery() != null) {
             Delivery d = o.getDelivery();
@@ -287,8 +264,8 @@ public class OrderService {
                 .id(o.getId())
                 .customerId(o.getCustomer().getId())
                 .customerName(o.getCustomer().getName())
-                .restaurantId(o.getRestaurant().getId())
-                .restaurantName(o.getRestaurant().getName())
+                .restaurantId(o.getRestaurantId())
+                .restaurantName(restaurantName)
                 .orderItems(itemResponses)
                 .status(o.getStatus().name())
                 .totalAmount(o.getTotalAmount())

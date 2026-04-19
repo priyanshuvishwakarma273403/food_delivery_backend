@@ -5,23 +5,17 @@ import com.delivery.foodDelivery.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "orders",
-        indexes = {
-                @Index(name = "idx_order_customer", columnList = "customer_id"),
-                @Index(name = "idx_order_restaurant", columnList = "restaurant_id"),
-                @Index(name = "idx_order_status", columnList = "status")
-        })
+@Table(name = "orders")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order extends BaseEntity{
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,48 +25,33 @@ public class Order extends BaseEntity{
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant;
+    @Column(name = "restaurant_id", nullable = false)
+    private String restaurantId; // Reference to MongoDB Restaurant
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private OrderStatus status = OrderStatus.PLACED;
-
-    @Column(nullable = false)
     private Double totalAmount;
+    
+    private Double coinsUsed;
+    
+    private Double finalAmount;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
     private String deliveryAddress;
 
-    // Payment
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+    private PaymentStatus paymentStatus;
 
-    private String paymentId;         // from payment gateway (e.g. Razorpay)
-    private String paymentMethod;     // CARD, UPI, COD, etc.
+    private String paymentMethod;
+    
+    private String paymentId;
 
-    // Delivery
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Delivery delivery;
-
-    // Special notes from customer
     private String specialInstructions;
 
-    // Loyalty System
-    @Column(name = "coins_used")
-    @Builder.Default
-    private Double coinsUsed = 0.0;
-
-    @Column(name = "final_amount")
-    private Double finalAmount; 
-
-
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Delivery delivery;
 }

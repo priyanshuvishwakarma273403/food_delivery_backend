@@ -1,15 +1,13 @@
 package com.delivery.foodDelivery.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import lombok.*;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "carts")
+@Document(collection = "carts")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,38 +16,23 @@ import java.util.List;
 public class Cart extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+    private Long userId;
 
+    private String restaurantId;
 
-    /**
-     * All items must be from the same restaurant.
-     * Validated at service layer before adding a new item.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
-    private Restaurant restaurant;
-
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 
-    /** Calculates total price dynamically. */
-    public Double getTotalPrice() {
-        return items.stream()
-                .mapToDouble(item -> item.getMenuItem().getPrice() * item.getQuantity())
-                .sum();
-    }
-
-    /** Clear all items and reset restaurant association. */
     public void clear() {
         this.items.clear();
-        this.restaurant = null;
+        this.restaurantId = null;
     }
 
+    public Double getTotalAmount() {
+        return items.stream()
+                .mapToDouble(i -> i.getPrice() * i.getQuantity())
+                .sum();
+    }
 }
