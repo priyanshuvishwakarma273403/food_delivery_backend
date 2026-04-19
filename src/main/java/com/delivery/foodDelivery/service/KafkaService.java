@@ -3,6 +3,8 @@ package com.delivery.foodDelivery.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.delivery.foodDelivery.dto.SaleEventDTO;
 import com.delivery.foodDelivery.config.KafkaConfig;
@@ -16,12 +18,20 @@ public class KafkaService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
+    @Value("${spring.kafka.listener.auto-startup:false}")
+    private boolean kafkaEnabled;
+
     /**
      * Send a message to a specific topic
      * @param topic Topic name
      * @param message Message content (usually JSON string)
      */
+    @Async
     public void sendMessage(String topic, String message) {
+        if (!kafkaEnabled) {
+            log.warn("Kafka is DISABLED. Skipping message to topic: {}", topic);
+            return;
+        }
         try {
             log.info("Sending message to Kafka topic {}: {}", topic, message);
             kafkaTemplate.send(topic, message);
