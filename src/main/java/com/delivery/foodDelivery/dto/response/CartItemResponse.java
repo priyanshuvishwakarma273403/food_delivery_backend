@@ -8,8 +8,8 @@ import lombok.Data;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CartItemResponse {
-    private Long id;
-    private Long menuItemId;
+    private String id;
+    private String menuItemId;
     private String menuItemName;
     private String menuItemImage;
     private Double unitPrice;

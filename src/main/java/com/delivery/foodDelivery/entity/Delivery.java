@@ -42,4 +42,6 @@ public class Delivery extends BaseEntity {
     
     private LocalDateTime deliveredAt;
 
+    private String rejectionReason;
+
 }

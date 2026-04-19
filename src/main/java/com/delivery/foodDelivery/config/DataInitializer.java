@@ -50,7 +50,6 @@ public class DataInitializer implements CommandLineRunner {
                     .avgDeliveryTime(30)
                     .minOrderAmount(200.0)
                     .open(true)
-                    .active(true)
                     .build(),
                 Restaurant.builder()
                     .name("Burger King")
@@ -63,7 +62,6 @@ public class DataInitializer implements CommandLineRunner {
                     .avgDeliveryTime(25)
                     .minOrderAmount(150.0)
                     .open(true)
-                    .active(true)
                     .build(),
                 Restaurant.builder()
                     .name("The Biryani Life")
@@ -76,7 +74,6 @@ public class DataInitializer implements CommandLineRunner {
                     .avgDeliveryTime(40)
                     .minOrderAmount(250.0)
                     .open(true)
-                    .active(true)
                     .build()
             );
             restaurantRepository.saveAll(sampleRestaurants);

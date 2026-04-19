@@ -28,7 +28,7 @@ public class MenuItemService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .price(request.getPrice())
-                .category(request.getCategory())
+                .category(request.getCategory() != null ? request.getCategory().name() : null)
                 .imageUrl(request.getImageUrl())
                 .restaurantId(restaurantId)
                 .build();
@@ -44,7 +44,7 @@ public class MenuItemService {
         item.setName(request.getName());
         item.setDescription(request.getDescription());
         item.setPrice(request.getPrice());
-        item.setCategory(request.getCategory());
+        item.setCategory(request.getCategory() != null ? request.getCategory().name() : null);
         item.setImageUrl(request.getImageUrl());
 
         return toResponse(menuItemRepository.save(item), null);

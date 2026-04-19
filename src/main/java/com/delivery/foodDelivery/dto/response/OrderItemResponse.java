@@ -10,7 +10,7 @@ import lombok.Data;
 public class OrderItemResponse {
 
     private Long id;
-    private Long menuItemId;
+    private String menuItemId;
     private String menuItemName;
     private String menuItemImage;
     private Integer quantity;

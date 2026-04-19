@@ -15,7 +15,7 @@ public class OrderResponse {
     private Long id;
     private Long customerId;
     private String customerName;
-    private Long restaurantId;
+    private String restaurantId;
     private String restaurantName;
     private List<OrderItemResponse> orderItems;
     private String status;

@@ -89,7 +89,7 @@ public class OrderController {
     @GetMapping("/restaurant/{restaurantId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByRestaurant(
-            @PathVariable Long restaurantId) {
+            @PathVariable String restaurantId) {
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.getOrdersByRestaurant(restaurantId)));
     }

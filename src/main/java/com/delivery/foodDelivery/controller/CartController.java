@@ -52,7 +52,7 @@ public class CartController {
     @PutMapping("/items/{menuItemId}")
     public ResponseEntity<ApiResponse<CartResponse>> updateQuantity(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long menuItemId,
+            @PathVariable String menuItemId,
             @RequestParam Integer quantity) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success(
@@ -62,7 +62,7 @@ public class CartController {
     @DeleteMapping("/items/{menuItemId}")
     public ResponseEntity<ApiResponse<CartResponse>> removeItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long menuItemId) {
+            @PathVariable String menuItemId) {
         Long userId = resolveUserId(userDetails);
         return ResponseEntity.ok(ApiResponse.success("Item removed",
                 cartService.removeItem(userId, menuItemId)));

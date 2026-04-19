@@ -39,7 +39,7 @@ public class OrderService {
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {
 
         // 1. Load and validate cart
-        Cart cart = cartService.getOrCreateCart(String.valueOf(customerId));
+        Cart cart = cartService.getOrCreateCart(customerId);
         if (cart.getItems().isEmpty()) {
             throw new BusinessException("Cannot place order: cart is empty.");
         }
@@ -111,7 +111,7 @@ public class OrderService {
         Order saved = orderRepository.save(order);
 
         // 5. Clear cart
-        cartService.clearCart(String.valueOf(customerId));
+        cartService.clearCart(customerId);
 
         // 6. Reward Loyalty Coins (1% cashback)
         double rewardCoins = Math.floor(total * 0.01); 
@@ -193,6 +193,15 @@ public class OrderService {
         Restaurant r = restaurantService.findById(restaurantId);
         return orderRepository.findByRestaurantIdOrderByCreatedDateDesc(restaurantId)
                 .stream().map(o -> toResponse(o, r.getName())).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(o -> {
+                    Restaurant r = restaurantService.findById(o.getRestaurantId());
+                    return toResponse(o, r.getName());
+                }).collect(Collectors.toList());
     }
 
     public Order findById(Long orderId) {
