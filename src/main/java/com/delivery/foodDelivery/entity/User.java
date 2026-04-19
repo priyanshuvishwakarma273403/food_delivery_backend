@@ -41,6 +41,10 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
+    @Column(name = "is_active")
+    @Builder.Default
+    private boolean isActive = true;
+
     private String address;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
