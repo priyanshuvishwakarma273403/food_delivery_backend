@@ -78,12 +78,15 @@ public class DataInitializer implements CommandLineRunner {
         };
 
         String[] restaurantImages = {
-            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
-            "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80",
-            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
-            "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
-            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80"
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1502301103665-0b95cc738def?auto=format&fit=crop&w=800&q=80"
         };
+
 
         List<Restaurant> seededRestaurants = new ArrayList<>();
 

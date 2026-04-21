@@ -101,7 +101,7 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("🪔 Special Diwali Offer: " + saleEvent.getTitle() + " 🪔");
             helper.setText(content, true);
-            helper.setFrom("no-reply@fooddelivery.com");
+
 
             mailSender.send(message);
             log.info("Successfully sent email to: {}", toEmail);
