@@ -36,7 +36,7 @@ public class SocialService {
         post = socialPostRepository.save(post);
 
         // Reward user with 50 coins for the first post of the day (simplified)
-        walletService.addCoins(user, 50.0);
+        walletService.addCoins(user.getId(), 50.0);
         
         return post;
     }
