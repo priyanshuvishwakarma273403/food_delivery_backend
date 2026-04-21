@@ -66,22 +66,31 @@ public class AiService {
             headers.setBearerAuth(groqApiKey);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("model", groqModel);
+            body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama3-8b-8192");
             body.put("messages", List.of(
+                Map.of("role", "system", "content", "You are TomatoAI, a professional and helpful food delivery assistant."),
                 Map.of("role", "user", "content", prompt)
             ));
+            body.put("temperature", 0.7);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            log.info("Calling Groq AI with prompt: {}", prompt);
+            
             Map<String, Object> response = restTemplate.postForObject(groqApiUrl, entity, Map.class);
 
             if (response != null && response.containsKey("choices")) {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-                Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                return (String) message.get("content");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return (String) message.get("content");
+                }
             }
         } catch (Exception e) {
-            log.error("Groq AI Error: {}", e.getMessage());
+            log.error("Groq AI Error Detail: {}", e.getMessage());
+            if (e.getMessage().contains("401")) return "AI Error: Invalid API Key. Please check your GROQ_API_KEY in Render.";
+            if (e.getMessage().contains("429")) return "AI is busy (Rate limit). Please try again in 1 minute.";
         }
-        return "Enjoy your meal! Try our top-rated restaurants.";
+        return "I'm having trouble reaching my brain (Groq AI). Please check if the API key is set correctly in Render environment variables.";
+
     }
 }

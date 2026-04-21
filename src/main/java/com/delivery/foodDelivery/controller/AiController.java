@@ -19,7 +19,9 @@ public class AiController {
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<ApiResponse<String>> chat(@RequestBody String message) {
+    public ResponseEntity<ApiResponse<String>> chat(@RequestBody java.util.Map<String, String> request) {
+        String message = request.get("message");
         return ResponseEntity.ok(ApiResponse.success(aiService.getChatbotResponse(message)));
     }
+
 }
