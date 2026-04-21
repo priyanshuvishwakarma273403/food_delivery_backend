@@ -110,7 +110,58 @@ public class AuthService {
     }
 
 
+    @Transactional
+    public AuthResponse googleLogin(String idToken) {
+        try {
+            // 1. Verify Google Token (ID Token)
+            // Note: You should ideally inject GOOGLE_CLIENT_ID from properties
+            String clientId = "YOUR_GOOGLE_CLIENT_ID_HERE"; 
+            
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier = 
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
+                    new com.google.api.client.http.javanet.NetHttpTransport(), 
+                    new com.google.api.client.json.gson.GsonFactory())
+                .setAudience(java.util.Collections.singletonList(clientId))
+                .build();
+
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken googleIdToken = verifier.verify(idToken);
+            if (googleIdToken == null) {
+                throw new BusinessException("Invalid Google Token");
+            }
+
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = googleIdToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            // 2. Find or Create User
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User newUser = User.builder()
+                        .name(name)
+                        .email(email)
+                        .password(passwordEncoder.encode("GOOGLE_AUTH_PWD_" + System.currentTimeMillis()))
+                        .role(Role.CUSTOMER)
+                        .active(true)
+                        .build();
+                newUser = userRepository.save(newUser);
+                walletService.createWallet(newUser);
+                return newUser;
+            });
+
+            // 3. Generate App Tokens
+            UserDetails userDetails = toSpringUser(user);
+            String accessToken  = jwtUtils.generateAccessToken(userDetails);
+            String refreshToken = jwtUtils.generateRefreshToken(userDetails);
+
+            return buildAuthResponse(accessToken, refreshToken, user);
+
+        } catch (Exception e) {
+            log.error("Google login failed", e);
+            throw new BusinessException("Google authentication failed: " + e.getMessage());
+        }
+    }
+
     private Role parseRole(String roleStr) {
+
         if (roleStr == null || roleStr.isBlank()) return Role.CUSTOMER;
         try {
             return Role.valueOf(roleStr.toUpperCase());

@@ -69,4 +69,11 @@ public class AuthController {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@RequestBody String idToken) {
+        AuthResponse response = authService.googleLogin(idToken);
+        return ResponseEntity.ok(ApiResponse.success("Google login successful", response));
+    }
 }
+
