@@ -65,17 +65,33 @@ public class DataInitializer implements CommandLineRunner {
         String[] cuisines = {"Indian", "Chinese", "Italian", "American", "Mexican", "Japanese", "Continental", "Thai"};
         String[] categories = {"VEG", "NON_VEG", "DESSERT", "BEVERAGES", "SIDES"};
 
-        String[] foodImages = {
-            "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80", // Pizza
-            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80", // Burger
-            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80", // Healthy
-            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80", // Grilled
-            "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80", // Pizza 2
-            "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", // Dessert
-            "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&q=80", // Salad
-            "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80", // Gourmet
-            "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80"  // Salad 2
+        private String getRandomImage(String cuisine) {
+        String[] burgerImages = {
+            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
+            "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800",
+            "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800"
         };
+        String[] pizzaImages = {
+            "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+            "https://images.unsplash.com/photo-1574129682662-e109127d41a9?w=800",
+            "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=800"
+        };
+        String[] saladImages = {
+            "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
+            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800"
+        };
+        String[] generalFood = {
+            "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800",
+            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800"
+        };
+
+        if (cuisine.toLowerCase().contains("burger")) return burgerImages[random.nextInt(burgerImages.length)];
+        if (cuisine.toLowerCase().contains("pizza")) return pizzaImages[random.nextInt(pizzaImages.length)];
+        if (cuisine.toLowerCase().contains("salad")) return saladImages[random.nextInt(saladImages.length)];
+        
+        return generalFood[random.nextInt(generalFood.length)];
+    }
 
         String[] restaurantImages = {
             "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",

@@ -1,87 +1,87 @@
 package com.delivery.foodDelivery.service;
 
-import com.delivery.foodDelivery.dto.request.AiChatRequest;
-import com.delivery.foodDelivery.exception.BusinessException;
+import com.delivery.foodDelivery.entity.Order;
+import com.delivery.foodDelivery.repository.jpa.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class AiService {
 
-    @Value("${groq.api.key:}")
-    private String apiKey;
+    private final OrderRepository orderRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
-    private String apiUrl;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
-    @Value("${groq.api.model:mixtral-8x7b-32768}")
-    private String model;
+    @Value("${groq.api.url}")
+    private String groqApiUrl;
 
-    public String getPersonalizedGreeting(String userName) {
-        int hour = java.time.LocalTime.now().getHour();
-        String timeContext;
-        String suggestion;
+    @Value("${groq.api.model}")
+    private String groqModel;
 
-        if (hour >= 5 && hour < 12) {
-            timeContext = "Morning";
-            suggestion = "How about a fresh breakfast to kickstart your day?";
-        } else if (hour >= 12 && hour < 17) {
-            timeContext = "Afternoon";
-            suggestion = "Time for a delicious lunch! Have you tried the local favorites?";
-        } else if (hour >= 17 && hour < 21) {
-            timeContext = "Evening";
-            suggestion = "Craving some evening snacks or a hearty dinner?";
-        } else {
-            timeContext = "Late Night";
-            suggestion = "Late night cravings? We have the best desserts and snacks open for you!";
-        }
+    public String getSmartSuggestion(Long userId) {
+        List<Order> history = orderRepository.findByCustomerIdOrderByCreatedDateDesc(userId);
+        
+        String historySummary = history.stream()
+                .limit(5)
+                .map(o -> o.getStatus().name()) // Simplification, ideally items
+                .collect(Collectors.joining(", "));
 
-        return String.format("Good %s, %s! %s", timeContext, userName, suggestion);
+        String prompt = String.format(
+            "User has ordered these types of food recently: [%s]. " +
+            "Suggest one specific healthy alternative or a popular pairing in one short sentence starting with 'Based on your recent orders...'",
+            historySummary
+        );
+
+        return callGroq(prompt);
     }
 
-    public String getChatResponse(AiChatRequest request) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new BusinessException("AI Assistant is not configured on the server.");
+    public String getChatbotResponse(String userMessage) {
+        String systemPrompt = "You are TomatoAI, a friendly food delivery assistant. Suggest 3 delicious dishes based on user preference. Keep it under 50 words.";
+        return callGroq(systemPrompt + "\nUser: " + userMessage);
+    }
+
+    private String callGroq(String prompt) {
+        if (groqApiKey == null || groqApiKey.isBlank()) {
+            return "I'm your Tomato assistant. How can I help you today?";
         }
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("model", model);
-        body.put("messages", request.getMessages());
-        body.put("temperature", 0.7);
-        body.put("max_tokens", 300);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, entity, Map.class);
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
-                }
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(groqApiKey);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("model", groqModel);
+            body.put("messages", List.of(
+                Map.of("role", "user", "content", prompt)
+            ));
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            Map<String, Object> response = restTemplate.postForObject(groqApiUrl, entity, Map.class);
+
+            if (response != null && response.containsKey("choices")) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+                Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                return (String) message.get("content");
             }
         } catch (Exception e) {
-            log.error("Error calling Groq API", e);
-            throw new BusinessException("Failed to get response from AI Assistant.");
+            log.error("Groq AI Error: {}", e.getMessage());
         }
-        return "I couldn't process that. Let me try again!";
+        return "Enjoy your meal! Try our top-rated restaurants.";
     }
 }
