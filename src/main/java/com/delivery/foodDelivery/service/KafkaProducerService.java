@@ -18,17 +18,22 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, SaleEventDTO> kafkaTemplate;
 
     public void sendSaleNotification(SaleEventDTO saleEvent) {
-        log.info("Producing sale event: {}", saleEvent.getTitle());
+        log.info("Producing sale event asynchronously: {}", saleEvent.getTitle());
         
-        CompletableFuture<SendResult<String, SaleEventDTO>> future = 
-                kafkaTemplate.send(KafkaConfig.SALE_TOPIC, saleEvent.getSaleId(), saleEvent);
-
-        future.whenComplete((result, ex) -> {
-            if (ex == null) {
-                log.info("Sent message=[{}] with offset=[{}]", saleEvent, result.getRecordMetadata().offset());
-            } else {
-                log.error("Unable to send message=[{}] due to : {}", saleEvent, ex.getMessage());
+        CompletableFuture.runAsync(() -> {
+            try {
+                kafkaTemplate.send(KafkaConfig.SALE_TOPIC, saleEvent.getSaleId(), saleEvent)
+                    .whenComplete((result, ex) -> {
+                        if (ex == null) {
+                            log.info("Successfully sent sale event to Kafka: {}", saleEvent.getSaleId());
+                        } else {
+                            log.error("Failed to send sale event to Kafka: {}", ex.getMessage());
+                        }
+                    });
+            } catch (Exception e) {
+                log.error("Error during Kafka send: {}", e.getMessage());
             }
         });
     }
+
 }

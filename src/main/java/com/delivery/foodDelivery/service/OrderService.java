@@ -34,8 +34,10 @@ public class OrderService {
     private final WalletService       walletService;
     private final RestaurantService   restaurantService;
     private final MenuItemService     menuItemService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @Transactional
+
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {
 
         // 1. Load and validate cart
@@ -140,8 +142,16 @@ public class OrderService {
         kafkaService.sendOrderStatusUpdate(orderId, newStatus.name());
 
         Restaurant restaurant = restaurantService.findById(order.getRestaurantId());
-        return toResponse(updated, restaurant.getName());
+        OrderResponse response = toResponse(updated, restaurant.getName());
+
+        // Notify user via WebSocket
+        String destination = "/topic/order/" + order.getCustomer().getId();
+        messagingTemplate.convertAndSend(destination, response);
+        log.info("WebSocket notification sent to {}", destination);
+
+        return response;
     }
+
 
     @Transactional
     public OrderResponse cancelOrder(Long orderId, Long requestingUserId) {

@@ -32,12 +32,19 @@ public class AuthService {
     private final EmailService emailService;
     private final KafkaService kafkaService;
     private final WalletService walletService;
+    private final RateLimitService rateLimitService;
 
     public void sendEmailOtp(String email) {
+        // Apply rate limit by email (or IP if we had it here)
+        if (!rateLimitService.resolveBucket(email).tryConsume(1)) {
+            throw new BusinessException("Too many OTP requests. Please try again after an hour.");
+        }
+        
         log.info("Generating OTP for email: {}", email);
         String otp = otpService.generateOtp(email);
         emailService.sendVerificationEmail(email, otp);
     }
+
 
     @Transactional
     public AuthResponse register(RegisterRequest request, String otp){
