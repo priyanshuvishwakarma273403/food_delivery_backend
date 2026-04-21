@@ -24,7 +24,11 @@ public class KafkaConsumerService {
      * Listener for Sale Events.
      * When a sale starts, it fetches all active users and triggers email notifications.
      */
-    @KafkaListener(topics = KafkaConfig.SALE_TOPIC, groupId = "email-service-group")
+    @KafkaListener(
+            topics = KafkaConfig.SALE_TOPIC, 
+            groupId = "email-service-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
     public void consumeSaleEvent(SaleEventDTO saleEvent) {
         log.info("Consumed sale event: {}", saleEvent.getTitle());
 
@@ -56,7 +60,11 @@ public class KafkaConsumerService {
     /**
      * DLT Listener for failed events
      */
-    @KafkaListener(topics = KafkaConfig.SALE_DLT_TOPIC, groupId = "email-service-dlt-group")
+    @KafkaListener(
+            topics = KafkaConfig.SALE_DLT_TOPIC, 
+            groupId = "email-service-dlt-group",
+            autoStartup = "${spring.kafka.listener.auto-startup:true}"
+    )
     public void consumeDlt(SaleEventDTO saleEvent) {
         log.error("EVENT MOVED TO DLT: {}", saleEvent);
         // Implement logic to notify admin or retry manually later

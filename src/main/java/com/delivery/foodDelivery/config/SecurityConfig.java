@@ -58,18 +58,17 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/restaurants/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/menu/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/menu/**").permitAll() // Backdoor for some frontend calls
+                        .requestMatchers(HttpMethod.GET, "/restaurants/**", "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/menu/**", "/api/menu/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/menu-items/**", "/api/menu-items/**").permitAll()
 
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/restaurants/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/restaurants/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/restaurants/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/menu/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/menu/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/menu/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**", "/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/restaurants/**", "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/restaurants/**", "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/restaurants/**", "/api/restaurants/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/menu/**", "/api/menu/**", "/menu-items/**", "/api/menu-items/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/menu/**", "/api/menu/**", "/menu-items/**", "/api/menu-items/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/menu/**", "/api/menu/**", "/menu-items/**", "/api/menu-items/**").hasRole("ADMIN")
 
                         .requestMatchers("/delivery/partner/**").hasRole("DELIVERY_PARTNER")
 
