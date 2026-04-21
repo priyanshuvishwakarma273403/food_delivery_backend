@@ -1,7 +1,10 @@
 package com.delivery.foodDelivery.controller;
 
 import com.delivery.foodDelivery.dto.SaleEventDTO;
+import com.delivery.foodDelivery.dto.request.SaleRequest;
+import com.delivery.foodDelivery.dto.response.ApiResponse;
 import com.delivery.foodDelivery.service.KafkaProducerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,13 +28,18 @@ public class AdminSaleController {
      */
     @PostMapping("/start")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> startSale(@RequestBody SaleEventDTO saleEvent) {
-        if (saleEvent.getSaleId() == null) {
-            saleEvent.setSaleId(UUID.randomUUID().toString());
-        }
+    public ResponseEntity<ApiResponse<String>> startSale(@Valid @RequestBody SaleRequest request) {
+        SaleEventDTO saleEvent = SaleEventDTO.builder()
+                .saleId("SALE-" + UUID.randomUUID().toString().substring(0, 8))
+                .title(request.getTitle())
+                .message(request.getMessage())
+                .discountPercentage(request.getDiscountPercentage())
+                .promoCode(request.getPromoCode())
+                .build();
         
         kafkaProducerService.sendSaleNotification(saleEvent);
         
-        return ResponseEntity.ok("Sale event triggered successfully. Notifications are being sent to all users.");
+        return ResponseEntity.ok(ApiResponse.success("Sale event triggered successfully. Notifications are being sent to all users.", null));
     }
 }
+
