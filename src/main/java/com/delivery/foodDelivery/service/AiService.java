@@ -56,27 +56,30 @@ public class AiService {
     }
 
     private String callGroq(String prompt) {
+        log.info("Attempting to call Groq AI. API Key present: {}", (groqApiKey != null && !groqApiKey.isBlank()));
+        
         if (groqApiKey == null || groqApiKey.isBlank()) {
-            return "I'm your Tomato assistant. How can I help you today?";
+            return "I'm TomatoAI. Please set the GROQ_API_KEY in Render to start chatting!";
         }
 
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
+            headers.set("Authorization", "Bearer " + groqApiKey.trim());
 
             Map<String, Object> body = new HashMap<>();
-            body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama3-8b-8192");
+            // Using the most stable Llama 3 model
+            body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama3-70b-8192");
             body.put("messages", List.of(
-                Map.of("role", "system", "content", "You are TomatoAI, a professional and helpful food delivery assistant."),
+                Map.of("role", "system", "content", "You are TomatoAI, a friendly food delivery assistant. Give short, helpful answers."),
                 Map.of("role", "user", "content", prompt)
             ));
-            body.put("temperature", 0.7);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-            log.info("Calling Groq AI with prompt: {}", prompt);
             
-            Map<String, Object> response = restTemplate.postForObject(groqApiUrl, entity, Map.class);
+            log.info("Sending request to Groq: {}", groqApiUrl);
+            ResponseEntity<Map> responseEntity = restTemplate.postForEntity(groqApiUrl, entity, Map.class);
+            Map<String, Object> response = responseEntity.getBody();
 
             if (response != null && response.containsKey("choices")) {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
@@ -85,12 +88,14 @@ public class AiService {
                     return (String) message.get("content");
                 }
             }
+            return "AI Error: Received empty response from Groq.";
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            log.error("Groq API Http Error: {} - Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return "AI Connection Error: " + e.getStatusCode();
         } catch (Exception e) {
-            log.error("Groq AI Error Detail: {}", e.getMessage());
-            if (e.getMessage().contains("401")) return "AI Error: Invalid API Key. Please check your GROQ_API_KEY in Render.";
-            if (e.getMessage().contains("429")) return "AI is busy (Rate limit). Please try again in 1 minute.";
+            log.error("Groq AI General Error: {}", e.getMessage());
+            return "AI Technical Glitch: " + e.getMessage();
         }
-        return "I'm having trouble reaching my brain (Groq AI). Please check if the API key is set correctly in Render environment variables.";
-
     }
+
 }
