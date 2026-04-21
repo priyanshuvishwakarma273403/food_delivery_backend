@@ -33,8 +33,12 @@ public class AuthService {
     private final KafkaService kafkaService;
     private final WalletService walletService;
     private final RateLimitService rateLimitService;
+    
+    @org.springframework.beans.factory.annotation.Value("${google.client.id}")
+    private String googleClientId;
 
     public void sendEmailOtp(String email) {
+
         // Apply rate limit by email (or IP if we had it here)
         if (!rateLimitService.resolveBucket(email).tryConsume(1)) {
             throw new BusinessException("Too many OTP requests. Please try again after an hour.");
@@ -114,8 +118,7 @@ public class AuthService {
     public AuthResponse googleLogin(String idToken) {
         try {
             // 1. Verify Google Token (ID Token)
-            // Note: You should ideally inject GOOGLE_CLIENT_ID from properties
-            String clientId = "YOUR_GOOGLE_CLIENT_ID_HERE"; 
+            String clientId = googleClientId; 
             
             com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier verifier = 
                 new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(
