@@ -51,21 +51,7 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void seedMassiveData() {
-        log.info("Starting Massive Data Seeding: 100 Restaurants and 1000 Menu Items...");
-        
-        String[] restaurantNames = {
-            "Pizza Palace", "Burger King", "The Biryani Life", "Taco Bell", "Sushi Sam", "Pasta Perfection",
-            "Curry House", "Wok Hei", "Steak & Grill", "Vegan Vibes", "Dessert Heaven", "Biryani Blues",
-            "Momo Magic", "Tandoori Nights", "Burger Baron", "Pizza Hut", "Dosa Plaza", "Chai Point",
-            "The Salad Bar", "Smoothie Stop", "Noodle Station", "Kebab Korner", "BBQ Nation", "Punjab Grill"
-        };
-        
-        String[] cities = {"Noida", "Ghaziabad", "Delhi", "Gurgaon", "Mumbai", "Bangalore", "Pune", "Hyderabad"};
-        String[] cuisines = {"Indian", "Chinese", "Italian", "American", "Mexican", "Japanese", "Continental", "Thai"};
-        String[] categories = {"VEG", "NON_VEG", "DESSERT", "BEVERAGES", "SIDES"};
-
-        private String getRandomImage(String cuisine) {
+    private String getRandomImage(String cuisine) {
         String[] burgerImages = {
             "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800",
             "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800",
@@ -86,12 +72,27 @@ public class DataInitializer implements CommandLineRunner {
             "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800"
         };
 
-        if (cuisine.toLowerCase().contains("burger")) return burgerImages[random.nextInt(burgerImages.length)];
-        if (cuisine.toLowerCase().contains("pizza")) return pizzaImages[random.nextInt(pizzaImages.length)];
-        if (cuisine.toLowerCase().contains("salad")) return saladImages[random.nextInt(saladImages.length)];
+        String cuisineLower = cuisine.toLowerCase();
+        if (cuisineLower.contains("burger")) return burgerImages[random.nextInt(burgerImages.length)];
+        if (cuisineLower.contains("pizza")) return pizzaImages[random.nextInt(pizzaImages.length)];
+        if (cuisineLower.contains("salad") || cuisineLower.contains("healthy")) return saladImages[random.nextInt(saladImages.length)];
         
         return generalFood[random.nextInt(generalFood.length)];
     }
+
+    private void seedMassiveData() {
+        log.info("Starting Massive Data Seeding: 100 Restaurants and 1000 Menu Items...");
+        
+        String[] restaurantNames = {
+            "Pizza Palace", "Burger King", "The Biryani Life", "Taco Bell", "Sushi Sam", "Pasta Perfection",
+            "Curry House", "Wok Hei", "Steak & Grill", "Vegan Vibes", "Dessert Heaven", "Biryani Blues",
+            "Momo Magic", "Tandoori Nights", "Burger Baron", "Pizza Hut", "Dosa Plaza", "Chai Point",
+            "The Salad Bar", "Smoothie Stop", "Noodle Station", "Kebab Korner", "BBQ Nation", "Punjab Grill"
+        };
+        
+        String[] cities = {"Noida", "Ghaziabad", "Delhi", "Gurgaon", "Mumbai", "Bangalore", "Pune", "Hyderabad"};
+        String[] cuisines = {"Indian", "Chinese", "Italian", "American", "Mexican", "Japanese", "Continental", "Thai"};
+        String[] categories = {"VEG", "NON_VEG", "DESSERT", "BEVERAGES", "SIDES"};
 
         String[] restaurantImages = {
             "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
@@ -103,18 +104,18 @@ public class DataInitializer implements CommandLineRunner {
             "https://images.unsplash.com/photo-1502301103665-0b95cc738def?auto=format&fit=crop&w=800&q=80"
         };
 
-
         List<Restaurant> seededRestaurants = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
+            String cuisine = cuisines[random.nextInt(cuisines.length)];
             String name = restaurantNames[random.nextInt(restaurantNames.length)] + " " + (i + 1);
             Restaurant restaurant = Restaurant.builder()
                     .name(name)
                     .address("Street " + (i + 1) + ", " + cities[random.nextInt(cities.length)])
                     .city(cities[random.nextInt(cities.length)])
-                    .cuisineType(cuisines[random.nextInt(cuisines.length)] + ", " + cuisines[random.nextInt(cuisines.length)])
+                    .cuisineType(cuisine)
                     .phone("9" + (100000000 + i))
-                    .imageUrl(restaurantImages[random.nextInt(restaurantImages.length)])
+                    .imageUrl(getRandomImage(cuisine))
                     .rating(3.0 + (random.nextDouble() * 2.0))
                     .avgDeliveryTime(20 + random.nextInt(40))
                     .minOrderAmount(100.0 + random.nextInt(200))
@@ -136,7 +137,7 @@ public class DataInitializer implements CommandLineRunner {
                         .name(r.getName().split(" ")[0] + " Special " + (j + 1))
                         .description("Delicious " + category.toLowerCase() + " item from " + r.getName())
                         .price(99.0 + random.nextInt(500))
-                        .imageUrl(foodImages[random.nextInt(foodImages.length)])
+                        .imageUrl(getRandomImage(r.getCuisineType()))
                         .category(category)
                         .restaurantId(r.getId())
                         .vegetarian(isVeg)
