@@ -47,8 +47,14 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/actuator/health",
-            "/ai/**"
+            "/ai/**",
+            "/social/**",
+            "/*.json",
+            "/*.png",
+            "/*.ico",
+            "/manifest.json"
     };
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
