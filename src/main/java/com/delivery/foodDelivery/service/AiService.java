@@ -53,8 +53,8 @@ public class AiService {
     }
 
     public String getChatbotResponse(String userMessage) {
-        String systemPrompt = "You are TomatoAI, a friendly food delivery assistant. Suggest 3 delicious dishes based on user preference. Keep it under 50 words.";
-        return callGroq(systemPrompt + "\nUser: " + userMessage);
+        // We now pass just the user message as callGroq handles the system prompt
+        return callGroq(userMessage);
     }
 
     private String callGroq(String prompt) {
@@ -70,16 +70,17 @@ public class AiService {
             headers.set("Authorization", "Bearer " + groqApiKey.trim());
 
             Map<String, Object> body = new HashMap<>();
-            // Using the most stable Llama 3 model
-            body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama3-70b-8192");
+            // Using the latest stable model
+            body.put("model", (groqModel != null && !groqModel.isBlank()) ? groqModel : "llama-3.3-70b-versatile");
             body.put("messages", List.of(
-                Map.of("role", "system", "content", "You are TomatoAI, a friendly food delivery assistant. Give short, helpful answers."),
+                Map.of("role", "system", "content", "You are TomatoAI, a friendly food delivery assistant for 'Tomato'. Suggest 3 delicious dishes based on user preference. Keep it very short and conversational."),
                 Map.of("role", "user", "content", prompt)
             ));
+            body.put("temperature", 0.7);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
             
-            log.info("Sending request to Groq: {}", groqApiUrl);
+            log.info("Sending request to Groq API...");
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(groqApiUrl, entity, Map.class);
             Map<String, Object> response = responseEntity.getBody();
 
@@ -93,11 +94,12 @@ public class AiService {
             return "AI Error: Received empty response from Groq.";
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
             log.error("Groq API Http Error: {} - Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return "AI Connection Error: " + e.getStatusCode();
+            return "AI Connection Error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString();
         } catch (Exception e) {
             log.error("Groq AI General Error: {}", e.getMessage());
             return "AI Technical Glitch: " + e.getMessage();
         }
     }
+
 
 }
