@@ -63,7 +63,8 @@ public class RestaurantService {
         return toResponse(restaurantRepository.save(restaurant));
     }
 
-    @org.springframework.cache.annotation.Cacheable(value = "restaurants", key = "'all'")
+    //@org.springframework.cache.annotation.Cacheable(value = "restaurants", key = "'all'")
+
     public List<RestaurantResponse> getAllRestaurants() {
         log.info("Fetching restaurants from database...");
         return restaurantRepository.findAll()
