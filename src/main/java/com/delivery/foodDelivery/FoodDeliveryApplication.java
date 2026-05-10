@@ -23,21 +23,27 @@ public class FoodDeliveryApplication {
 
 
 	public static void main(String[] args) {
-		// Robust fix for environment variables with trailing newlines or literal "\n" strings
-		String jdbcUrl = System.getenv("SPRING_DATASOURCE_URL");
-		if (jdbcUrl != null) {
-			// Clean the URL: trim whitespace, remove trailing literal "\n", and remove surrounding quotes
-			String cleanUrl = jdbcUrl.trim();
-			if (cleanUrl.endsWith("\\n")) {
-				cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 2).trim();
-			}
-			if (cleanUrl.startsWith("\"") && cleanUrl.endsWith("\"")) {
-				cleanUrl = cleanUrl.substring(1, cleanUrl.length() - 1).trim();
-			}
-			System.setProperty("spring.datasource.url", cleanUrl);
-			System.out.println("DEBUG: Cleaned JDBC URL: " + cleanUrl);
-		}
+		// Robust fix for environment variables with trailing newlines, literal "\n", or quotes
+		cleanAndSetProperty("SPRING_DATASOURCE_URL", "spring.datasource.url");
+		cleanAndSetProperty("MONGODB_URI", "spring.data.mongodb.uri");
 		
 		SpringApplication.run(FoodDeliveryApplication.class, args);
+	}
+
+	private static void cleanAndSetProperty(String envVar, String systemProp) {
+		String value = System.getenv(envVar);
+		if (value != null) {
+			String cleanValue = value.trim();
+			// Remove literal "\n"
+			if (cleanValue.endsWith("\\n")) {
+				cleanValue = cleanValue.substring(0, cleanValue.length() - 2).trim();
+			}
+			// Remove surrounding quotes
+			if (cleanValue.startsWith("\"") && cleanValue.endsWith("\"")) {
+				cleanValue = cleanValue.substring(1, cleanValue.length() - 1).trim();
+			}
+			System.setProperty(systemProp, cleanValue);
+			System.out.println("DEBUG: Cleaned " + envVar + " -> " + cleanValue);
+		}
 	}
 }
