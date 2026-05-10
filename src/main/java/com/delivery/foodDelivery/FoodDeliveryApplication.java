@@ -23,6 +23,12 @@ public class FoodDeliveryApplication {
 
 
 	public static void main(String[] args) {
+		// Fix for environment variables with trailing newlines (e.g. from Aiven console)
+		String jdbcUrl = System.getenv("SPRING_DATASOURCE_URL");
+		if (jdbcUrl != null && jdbcUrl.contains("\n")) {
+			System.setProperty("spring.datasource.url", jdbcUrl.trim());
+		}
+		
 		SpringApplication.run(FoodDeliveryApplication.class, args);
 	}
 }
