@@ -23,10 +23,19 @@ public class FoodDeliveryApplication {
 
 
 	public static void main(String[] args) {
-		// Fix for environment variables with trailing newlines (e.g. from Aiven console)
+		// Robust fix for environment variables with trailing newlines or literal "\n" strings
 		String jdbcUrl = System.getenv("SPRING_DATASOURCE_URL");
-		if (jdbcUrl != null && jdbcUrl.contains("\n")) {
-			System.setProperty("spring.datasource.url", jdbcUrl.trim());
+		if (jdbcUrl != null) {
+			// Clean the URL: trim whitespace, remove trailing literal "\n", and remove surrounding quotes
+			String cleanUrl = jdbcUrl.trim();
+			if (cleanUrl.endsWith("\\n")) {
+				cleanUrl = cleanUrl.substring(0, cleanUrl.length() - 2).trim();
+			}
+			if (cleanUrl.startsWith("\"") && cleanUrl.endsWith("\"")) {
+				cleanUrl = cleanUrl.substring(1, cleanUrl.length() - 1).trim();
+			}
+			System.setProperty("spring.datasource.url", cleanUrl);
+			System.out.println("DEBUG: Cleaned JDBC URL: " + cleanUrl);
 		}
 		
 		SpringApplication.run(FoodDeliveryApplication.class, args);
