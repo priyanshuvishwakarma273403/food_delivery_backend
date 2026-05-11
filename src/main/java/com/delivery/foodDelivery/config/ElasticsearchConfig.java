@@ -1,17 +1,9 @@
 package com.delivery.foodDelivery.config;
 
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.ElasticsearchTransport;
-import co.elastic.clients.transport.rest_client.RestClientOptions;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
@@ -54,14 +46,15 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Override
     @NonNull
-    public ElasticsearchTransport elasticsearchTransport(JacksonJsonpMapper jsonpMapper, 
-                                                       @NonNull RestClient restClient) {
-        // Use RestClientOptions to suppress the compatibility headers
-        RestClientOptions options = new RestClientOptions.Builder(RestClientOptions.DEFAULT)
-                .addHeader("Accept", "application/json")
-                .addHeader("Content-Type", "application/json")
+    public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
+        // Manually customize the RestClient to fix OpenSearch 406 errors
+        // by forcing standard JSON headers without compatibility flags.
+        return org.springframework.data.elasticsearch.client.RestClients.create(clientConfiguration)
+                .builder()
+                .setDefaultHeaders(new Header[]{
+                    new BasicHeader("Content-Type", "application/json"),
+                    new BasicHeader("Accept", "application/json")
+                })
                 .build();
-                
-        return new RestClientTransport(restClient, jsonpMapper, options);
     }
 }
