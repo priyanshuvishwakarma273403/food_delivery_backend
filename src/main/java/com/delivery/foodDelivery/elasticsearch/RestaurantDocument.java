@@ -9,6 +9,8 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -30,4 +32,7 @@ public class RestaurantDocument {
 
     @Field(type = FieldType.Double, name = "rating")
     private Double rating;
+
+    @Field(type = FieldType.Text, name = "menuItems")
+    private List<String> menuItemNames;
 }

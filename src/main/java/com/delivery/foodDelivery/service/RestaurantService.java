@@ -2,6 +2,7 @@ package com.delivery.foodDelivery.service;
 
 import com.delivery.foodDelivery.dto.request.RestaurantRequest;
 import com.delivery.foodDelivery.dto.response.RestaurantResponse;
+import com.delivery.foodDelivery.entity.MenuItem;
 import com.delivery.foodDelivery.entity.Restaurant;
 import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.repository.mongo.RestaurantRepository;
@@ -18,6 +19,23 @@ import java.util.stream.Collectors;
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
+    private final RestaurantSearchService searchService;
+
+    private void syncToElasticsearch(Restaurant restaurant) {
+        try {
+            com.delivery.foodDelivery.elasticsearch.RestaurantDocument doc = com.delivery.foodDelivery.elasticsearch.RestaurantDocument.builder()
+                    .id(restaurant.getId())
+                    .name(restaurant.getName())
+                    .cuisineType(restaurant.getCuisineType())
+                    .city(restaurant.getCity())
+                    .rating(restaurant.getRating())
+                    .menuItemNames(restaurant.getMenuItems().stream().map(MenuItem::getName).collect(Collectors.toList()))
+                    .build();
+            searchService.save(doc);
+        } catch (Exception e) {
+            log.error("Failed to sync restaurant to Elasticsearch: {}", e.getMessage());
+        }
+    }
 
     public RestaurantResponse addRestaurant(RestaurantRequest request) {
         Restaurant restaurant = Restaurant.builder()
@@ -32,6 +50,7 @@ public class RestaurantService {
                 .build();
 
         restaurant = restaurantRepository.save(restaurant);
+        syncToElasticsearch(restaurant);
         log.info("Restaurant added: {} [id={}]", restaurant.getName(), restaurant.getId());
         return toResponse(restaurant);
     }
@@ -48,7 +67,9 @@ public class RestaurantService {
         restaurant.setAvgDeliveryTime(request.getAvgDeliveryTime());
         restaurant.setMinOrderAmount(request.getMinOrderAmount());
 
-        return toResponse(restaurantRepository.save(restaurant));
+        Restaurant updated = restaurantRepository.save(restaurant);
+        syncToElasticsearch(updated);
+        return toResponse(updated);
     }
 
     public void deleteRestaurant(String id) {
