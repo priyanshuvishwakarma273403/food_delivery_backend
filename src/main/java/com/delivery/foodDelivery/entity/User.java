@@ -36,6 +36,7 @@ public class User extends BaseEntity {
     private String phone;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", columnDefinition = "VARCHAR(50)")
     private Role role;
 
     @Builder.Default

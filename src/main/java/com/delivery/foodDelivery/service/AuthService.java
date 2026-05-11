@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -91,26 +92,42 @@ public class AuthService {
         return buildAuthResponse(accessToken, refreshToken, user);
     }
 
-
     public AuthResponse login(LoginRequest request) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new BusinessException("User not found"));
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> {
+                    log.error("Authentication Failure: User with email {} not found in database", request.getEmail());
+                    return new UsernameNotFoundException("User not found with email: " + request.getEmail());
+                });
 
-        String accessToken  = jwtUtils.generateAccessToken(userDetails);
+            if(!user.isActive()){
+                log.warn("Authentication Failure: User account {} is deactivated", request.getEmail());
+                throw new BusinessException("User account is deactivated: " + request.getEmail());
+            }
+            
+            log.info("LOGIN SUCCESS: User {} authenticated successfully", user.getEmail());
+            
+            // Kafka Advance Use Case: Send login event for real-time analytics
+            kafkaService.sendMessage("user-analytics", 
+                String.format("{\"userId\": %d, \"action\": \"LOGIN\", \"timestamp\": %d}", 
+                user.getId(), System.currentTimeMillis()));
+
+            String accessToken  = jwtUtils.generateAccessToken(userDetails);
         String refreshToken = jwtUtils.generateRefreshToken(userDetails);
 
-        log.info("User logged in: {}", user.getEmail());
-        
-        // Kafka Advance Use Case: Send login event for real-time analytics
-        kafkaService.sendMessage("user-analytics", 
-            String.format("{\"userId\": %d, \"action\": \"LOGIN\", \"timestamp\": %d}", 
-            user.getId(), System.currentTimeMillis()));
-
         return buildAuthResponse(accessToken, refreshToken, user);
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            log.error("LOGIN FAILURE: Invalid credentials or user not found for email: {}", request.getEmail());
+            throw new BusinessException("Invalid email or password");
+        } catch (Exception e) {
+            log.error("LOGIN ERROR: Unexpected error during login for email: {}. Error: {}", 
+                request.getEmail(), e.getMessage());
+            throw e;
+        }
     }
 
 
