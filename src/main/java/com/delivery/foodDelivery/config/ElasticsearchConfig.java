@@ -1,8 +1,14 @@
 package com.delivery.foodDelivery.config;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
@@ -47,14 +53,28 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @Override
     @NonNull
     public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
-        // Manually customize the RestClient to fix OpenSearch 406 errors
-        // by forcing standard JSON headers without compatibility flags.
-        return org.springframework.data.elasticsearch.client.RestClients.create(clientConfiguration)
-                .builder()
-                .setDefaultHeaders(new Header[]{
-                    new BasicHeader("Content-Type", "application/json"),
-                    new BasicHeader("Accept", "application/json")
-                })
-                .build();
+        // Manually build RestClient to avoid internal class issues and fix OpenSearch 406
+        URI uri = URI.create(elasticsearchUri.startsWith("http") ? elasticsearchUri : "https://" + elasticsearchUri);
+        String host = uri.getHost();
+        int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
+
+        RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, uri.getScheme()));
+
+        if (username != null && !username.isEmpty()) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY,
+                    new UsernamePasswordCredentials(username, password));
+
+            builder.setHttpClientConfigCallback(httpClientBuilder -> 
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+        }
+
+        // Critical: Force standard headers to avoid OpenSearch 406 errors
+        builder.setDefaultHeaders(new Header[]{
+            new BasicHeader("Content-Type", "application/json"),
+            new BasicHeader("Accept", "application/json")
+        });
+
+        return builder.build();
     }
 }
