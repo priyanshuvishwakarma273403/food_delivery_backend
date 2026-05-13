@@ -2,6 +2,7 @@ package com.delivery.foodDelivery.config;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -68,7 +69,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
                 
                 // Add interceptor to strip the compatibility header that causes 406 on OpenSearch
-                httpClientBuilder.addInterceptorLast((request, context) -> {
+                httpClientBuilder.addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
                     if (request.containsHeader("Content-Type")) {
                         Header contentType = request.getFirstHeader("Content-Type");
                         if (contentType.getValue().contains("compatible-with=8")) {
