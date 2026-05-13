@@ -79,22 +79,16 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             builder.setHttpClientConfigCallback(httpClientBuilder -> {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
                 
-                // Add interceptor to strip the compatibility header that causes 406 on OpenSearch
+                // Add interceptor for preemptive auth and compatibility fixes
                 httpClientBuilder.addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
-                    if (request.containsHeader("Content-Type")) {
-                        Header contentType = request.getFirstHeader("Content-Type");
-                        if (contentType.getValue().contains("compatible-with=8")) {
-                            request.removeHeader(contentType);
-                            request.addHeader("Content-Type", "application/json");
-                        }
-                    }
-                    if (request.containsHeader("Accept")) {
-                        Header accept = request.getFirstHeader("Accept");
-                        if (accept.getValue().contains("compatible-with=8")) {
-                            request.removeHeader(accept);
-                            request.addHeader("Accept", "application/json");
-                        }
-                    }
+                    // Preemptive Basic Auth
+                    String auth = username + ":" + password;
+                    String encodedAuth = java.util.Base64.getEncoder().encodeToString(auth.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    request.setHeader("Authorization", "Basic " + encodedAuth);
+
+                    // Force application/json and strip incompatible headers
+                    request.setHeader("Content-Type", "application/json");
+                    request.setHeader("Accept", "application/json");
                 });
                 
                 return httpClientBuilder;
