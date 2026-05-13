@@ -50,7 +50,7 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             builder.withBasicAuth(username, password);
             // Explicitly set headers in ClientConfiguration as well
             builder.withHeaders(() -> {
-                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                org.springframework.data.elasticsearch.support.HttpHeaders headers = new org.springframework.data.elasticsearch.support.HttpHeaders();
                 headers.add("Content-Type", "application/json");
                 headers.add("Accept", "application/json");
                 return headers;
