@@ -20,8 +20,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableRedisRepositories(basePackages = "com.delivery.foodDelivery.repository.redis")
 public class FoodDeliveryApplication {
 
-
-
 	public static void main(String[] args) {
 		// Robust fix for environment variables with trailing newlines, literal "\n", or quotes
 		cleanAndSetProperty("SPRING_DATASOURCE_URL", "spring.datasource.url");

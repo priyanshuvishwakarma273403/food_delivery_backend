@@ -53,7 +53,6 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @Override
     @NonNull
     public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
-        // Manually build RestClient to avoid internal class issues and fix OpenSearch 406
         URI uri = URI.create(elasticsearchUri.startsWith("http") ? elasticsearchUri : "https://" + elasticsearchUri);
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
@@ -65,11 +64,32 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             credentialsProvider.setCredentials(AuthScope.ANY,
                     new UsernamePasswordCredentials(username, password));
 
-            builder.setHttpClientConfigCallback(httpClientBuilder -> 
-                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                
+                // Add interceptor to strip the compatibility header that causes 406 on OpenSearch
+                httpClientBuilder.addInterceptorLast((request, context) -> {
+                    if (request.containsHeader("Content-Type")) {
+                        Header contentType = request.getFirstHeader("Content-Type");
+                        if (contentType.getValue().contains("compatible-with=8")) {
+                            request.removeHeader(contentType);
+                            request.addHeader("Content-Type", "application/json");
+                        }
+                    }
+                    if (request.containsHeader("Accept")) {
+                        Header accept = request.getFirstHeader("Accept");
+                        if (accept.getValue().contains("compatible-with=8")) {
+                            request.removeHeader(accept);
+                            request.addHeader("Accept", "application/json");
+                        }
+                    }
+                });
+                
+                return httpClientBuilder;
+            });
         }
 
-        // Critical: Force standard headers to avoid OpenSearch 406 errors
+        // Default headers
         builder.setDefaultHeaders(new Header[]{
             new BasicHeader("Content-Type", "application/json"),
             new BasicHeader("Accept", "application/json")
