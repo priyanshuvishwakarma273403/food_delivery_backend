@@ -21,15 +21,26 @@ import java.net.URI;
 @Configuration
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
-    @Value("${spring.elasticsearch.uris:localhost:9200}")
+    @Value("${spring.elasticsearch.uris:${ELASTICSEARCH_URL:localhost:9200}}")
     private String elasticsearchUri;
 
-    @Value("${spring.elasticsearch.username:}")
+    @Value("${spring.elasticsearch.username:${ELASTICSEARCH_USERNAME:}}")
     private String username;
 
-    @Value("${spring.elasticsearch.password:}")
+    @Value("${spring.elasticsearch.password:${ELASTICSEARCH_PASSWORD:}}")
     private String password;
 
+    @jakarta.annotation.PostConstruct
+    public void debugConfig() {
+        System.out.println("DEBUG: Elasticsearch URI: " + elasticsearchUri);
+        System.out.println("DEBUG: Elasticsearch Username present: " + (username != null && !username.isEmpty()));
+        if (username != null) {
+            System.out.println("DEBUG: Username length: " + username.length());
+        }
+        if (password != null) {
+            System.out.println("DEBUG: Password length: " + password.length());
+        }
+    }
     @Override
     @NonNull
     public ClientConfiguration clientConfiguration() {
