@@ -17,6 +17,8 @@ import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfigurat
 import org.springframework.lang.NonNull;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Configuration
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
@@ -30,17 +32,6 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @Value("${spring.elasticsearch.password:${ELASTICSEARCH_PASSWORD:}}")
     private String password;
 
-    @jakarta.annotation.PostConstruct
-    public void debugConfig() {
-        System.out.println("DEBUG: Elasticsearch URI: " + elasticsearchUri);
-        System.out.println("DEBUG: Elasticsearch Username present: " + (username != null && !username.isEmpty()));
-        if (username != null) {
-            System.out.println("DEBUG: Username length: " + username.length());
-        }
-        if (password != null) {
-            System.out.println("DEBUG: Password length: " + password.length());
-        }
-    }
     @Override
     @NonNull
     public ClientConfiguration clientConfiguration() {
@@ -57,6 +48,13 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
         if (username != null && !username.isEmpty()) {
             builder.withBasicAuth(username, password);
+            // Explicitly set headers in ClientConfiguration as well
+            builder.withHeaders(() -> {
+                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                headers.add("Content-Type", "application/json");
+                headers.add("Accept", "application/json");
+                return headers;
+            });
         }
 
         return builder.build();
@@ -80,13 +78,13 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
                 
                 // Add interceptor for preemptive auth and compatibility fixes
-                httpClientBuilder.addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
-                    // Preemptive Basic Auth
+                httpClientBuilder.addInterceptorFirst((HttpRequestInterceptor) (request, context) -> {
+                    // Preemptive Basic Auth header
                     String auth = username + ":" + password;
-                    String encodedAuth = java.util.Base64.getEncoder().encodeToString(auth.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
                     request.setHeader("Authorization", "Basic " + encodedAuth);
 
-                    // Force application/json and strip incompatible headers
+                    // Force application/json and strip any 'compatible-with=8' added by the client
                     request.setHeader("Content-Type", "application/json");
                     request.setHeader("Accept", "application/json");
                 });
@@ -95,11 +93,12 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             });
         }
 
-        // Default headers
-        builder.setDefaultHeaders(new Header[]{
+        // Set default headers on the builder level too
+        Header[] defaultHeaders = new Header[]{
             new BasicHeader("Content-Type", "application/json"),
             new BasicHeader("Accept", "application/json")
-        });
+        };
+        builder.setDefaultHeaders(defaultHeaders);
 
         return builder.build();
     }
