@@ -24,11 +24,12 @@ public class FoodDeliveryApplication {
 		// Robust fix for environment variables with trailing newlines, literal "\n", or quotes
 		cleanAndSetProperty("SPRING_DATASOURCE_URL", "spring.datasource.url");
 		cleanAndSetProperty("MONGODB_URI", "spring.data.mongodb.uri");
-		cleanAndSetProperty("KAFKA_BOOTSTRAP_SERVERS", "spring.kafka.bootstrap-servers");
-		cleanAndSetProperty("VALKEY_HOST", "spring.data.redis.host");
-		cleanAndSetProperty("ELASTICSEARCH_URL", "spring.elasticsearch.uris");
-		cleanAndSetProperty("ELASTICSEARCH_USERNAME", "spring.elasticsearch.username");
-		cleanAndSetProperty("ELASTICSEARCH_PASSWORD", "spring.elasticsearch.password");
+		// cleanAndSetProperty("KAFKA_BOOTSTRAP_SERVERS", "spring.kafka.bootstrap-servers");
+		// cleanAndSetProperty("VALKEY_HOST", "spring.data.redis.host");
+		// cleanAndSetProperty("ELASTICSEARCH_URL", "spring.elasticsearch.uris");
+		// cleanAndSetProperty("ELASTICSEARCH_USERNAME", "spring.elasticsearch.username");
+		// cleanAndSetProperty("ELASTICSEARCH_PASSWORD", "spring.elasticsearch.password");
+
 		
 		// If KAFKA_ENABLED is explicitly false, disable Kafka auto-startup
 		String kafkaEnabled = System.getenv("KAFKA_ENABLED");

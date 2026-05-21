@@ -1,17 +1,17 @@
 package com.delivery.foodDelivery.config;
 
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.lang.NonNull;
@@ -23,36 +23,36 @@ import java.util.Base64;
 @Configuration
 public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
-    @Value("${spring.elasticsearch.uris:${ELASTICSEARCH_URL:localhost:9200}}")
-    private String elasticsearchUri;
-
-    @Value("${spring.elasticsearch.username:${ELASTICSEARCH_USERNAME:}}")
-    private String username;
-
-    @Value("${spring.elasticsearch.password:${ELASTICSEARCH_PASSWORD:}}")
-    private String password;
+    @Autowired
+    private Environment env;
 
     @Override
     @NonNull
     public ClientConfiguration clientConfiguration() {
-        URI uri = URI.create(elasticsearchUri.startsWith("http") ? elasticsearchUri : "https://" + elasticsearchUri);
+        String uriStr = "localhost:9200";
+        String username = "";
+        String password = "";
+
+        System.out.println("DEBUG: ElasticsearchConfig - Resolving connection to: " + uriStr);
+
+        URI uri = URI.create(uriStr.startsWith("http") ? uriStr : "https://" + uriStr);
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
 
         ClientConfiguration.MaybeSecureClientConfigurationBuilder builder = ClientConfiguration.builder()
                 .connectedTo(host + ":" + port);
 
-        if (uri.getScheme().equals("https") || port == 443) {
+        if ("https".equalsIgnoreCase(uri.getScheme()) || port == 443) {
             builder.usingSsl();
         }
 
         if (username != null && !username.isEmpty()) {
             builder.withBasicAuth(username, password);
-            // Explicitly set headers in ClientConfiguration as well
             builder.withHeaders(() -> {
-                org.springframework.data.elasticsearch.support.HttpHeaders headers = new org.springframework.data.elasticsearch.support.HttpHeaders();
-                headers.add("Content-Type", "application/json");
+                org.springframework.data.elasticsearch.support.HttpHeaders headers = 
+                    new org.springframework.data.elasticsearch.support.HttpHeaders();
                 headers.add("Accept", "application/json");
+                headers.add("Content-Type", "application/json");
                 return headers;
             });
         }
@@ -62,8 +62,13 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
 
     @Override
     @NonNull
+    @Bean(name = "elasticsearchRestClient")
     public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
-        URI uri = URI.create(elasticsearchUri.startsWith("http") ? elasticsearchUri : "https://" + elasticsearchUri);
+        String uriStr = "localhost:9200";
+        String username = "";
+        String password = "";
+
+        URI uri = URI.create(uriStr.startsWith("http") ? uriStr : "https://" + uriStr);
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
 
@@ -74,32 +79,34 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
             credentialsProvider.setCredentials(AuthScope.ANY,
                     new UsernamePasswordCredentials(username, password));
 
+            final String authHeaderValue = "Basic " + Base64.getEncoder().encodeToString(
+                    (username + ":" + password).getBytes(StandardCharsets.UTF_8));
+
             builder.setHttpClientConfigCallback(httpClientBuilder -> {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
                 
-                // Add interceptor for preemptive auth and compatibility fixes
                 httpClientBuilder.addInterceptorFirst((HttpRequestInterceptor) (request, context) -> {
-                    // Preemptive Basic Auth header
-                    String auth = username + ":" + password;
-                    String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-                    request.setHeader("Authorization", "Basic " + encodedAuth);
-
-                    // Force application/json and strip any 'compatible-with=8' added by the client
-                    request.setHeader("Content-Type", "application/json");
+                    // Aggressively set headers to bypass any library-level overrides
+                    request.setHeader("Authorization", authHeaderValue);
                     request.setHeader("Accept", "application/json");
+                    request.setHeader("Content-Type", "application/json");
+                    
+                    // OpenSearch compatibility: remove the elastic-client-meta header if it exists
+                    request.removeHeaders("X-Elastic-Client-Meta");
                 });
                 
                 return httpClientBuilder;
             });
         }
 
-        // Set default headers on the builder level too
-        Header[] defaultHeaders = new Header[]{
-            new BasicHeader("Content-Type", "application/json"),
-            new BasicHeader("Accept", "application/json")
-        };
-        builder.setDefaultHeaders(defaultHeaders);
-
         return builder.build();
+    }
+
+    private String getProp(String springProp, String envVar, String defaultVal) {
+        String val = env.getProperty(springProp);
+        if (val == null || val.isEmpty()) {
+            val = env.getProperty(envVar);
+        }
+        return (val == null || val.isEmpty()) ? defaultVal : val;
     }
 }
