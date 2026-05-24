@@ -36,8 +36,9 @@ public class OrderService {
     private final MenuItemService     menuItemService;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
-    @Transactional
+    private final EmailService        emailService;
 
+    @Transactional
     public OrderResponse placeOrder(Long customerId, OrderRequest request) {
 
         // 1. Load and validate cart
@@ -138,6 +139,11 @@ public class OrderService {
         String adminDestination = "/topic/admin/orders";
         messagingTemplate.convertAndSend(adminDestination, response);
         log.info("WebSocket order placed notification sent to admin {}", adminDestination);
+
+        // Send Email to User
+        if (customer.getEmail() != null && !customer.getEmail().isEmpty()) {
+            emailService.sendOrderUpdateEmail(customer.getEmail(), customer.getName(), saved.getId(), "PLACED");
+        }
 
         return response;
     }
