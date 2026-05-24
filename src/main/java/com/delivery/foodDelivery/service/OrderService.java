@@ -172,6 +172,11 @@ public class OrderService {
         messagingTemplate.convertAndSend(adminDestination, response);
         log.info("WebSocket status update sent to admin {}", adminDestination);
 
+        // Send Email to User
+        if (order.getCustomer().getEmail() != null && !order.getCustomer().getEmail().isEmpty()) {
+            emailService.sendOrderUpdateEmail(order.getCustomer().getEmail(), order.getCustomer().getName(), orderId, newStatusStr);
+        }
+
         return response;
     }
 
