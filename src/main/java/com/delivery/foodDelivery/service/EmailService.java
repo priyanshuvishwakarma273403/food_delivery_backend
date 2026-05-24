@@ -119,18 +119,74 @@ public class EmailService {
         }
     }
 
-    /**
-     * Sends sale notification to all registered users.
-     */
-    public void sendBulkSaleEmails(SaleEventDTO saleEvent) {
-        log.info("Triggering bulk sale emails for: {}", saleEvent.getTitle());
-        List<User> users = userRepository.findAll();
-        
-        for (User user : users) {
-            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                sendSaleNotificationEmail(user.getEmail(), user.getName(), saleEvent);
+    @Async("emailExecutor")
+    public void sendOrderUpdateEmail(String toEmail, String userName, Long orderId, String status) {
+        try {
+            log.info("Sending order update email to: {} for order: {}", toEmail, orderId);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+            String title = "";
+            String emoji = "";
+            String bodyMessage = "";
+            
+            if ("PLACED".equalsIgnoreCase(status)) {
+                title = "Order Confirmed!";
+                emoji = "✅";
+                bodyMessage = "Great news! Your order #" + orderId + " has been successfully placed. The restaurant is preparing your delicious food.";
+            } else if ("OUT_FOR_DELIVERY".equalsIgnoreCase(status)) {
+                title = "Order is on the way!";
+                emoji = "🛵";
+                bodyMessage = "Get ready! Your order #" + orderId + " has been picked up and is on its way to you.";
+            } else if ("DELIVERED".equalsIgnoreCase(status)) {
+                title = "Order Delivered!";
+                emoji = "🍽️";
+                bodyMessage = "Your order #" + orderId + " has been delivered safely. Enjoy your meal!";
+            } else {
+                title = "Order Update: " + status;
+                emoji = "🔔";
+                bodyMessage = "Your order #" + orderId + " status is now: " + status + ".";
             }
+
+            String content = "<!DOCTYPE html>" +
+                    "<html>" +
+                    "<head>" +
+                    "<style>" +
+                    "  .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }" +
+                    "  .header { background: #FF5500; color: white; padding: 30px 20px; text-align: center; }" +
+                    "  .header h1 { margin: 0; font-size: 28px; }" +
+                    "  .content { padding: 30px; background-color: #ffffff; color: #333; line-height: 1.6; text-align: center; }" +
+                    "  .emoji { font-size: 48px; margin-bottom: 10px; }" +
+                    "  .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }" +
+                    "</style>" +
+                    "</head>" +
+                    "<body>" +
+                    "  <div class='container'>" +
+                    "    <div class='header'>" +
+                    "      <h1>" + emoji + " " + title + "</h1>" +
+                    "    </div>" +
+                    "    <div class='content'>" +
+                    "      <h3>Hello " + userName + "!</h3>" +
+                    "      <p>" + bodyMessage + "</p>" +
+                    "      <p>Thank you for choosing Tomato Food Delivery.</p>" +
+                    "    </div>" +
+                    "    <div class='footer'>" +
+                    "      <p>&copy; 2026 Tomato Food Delivery. All Rights Reserved.</p>" +
+                    "    </div>" +
+                    "  </div>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setTo(toEmail);
+            helper.setSubject("Tomato Food - " + title);
+            helper.setText(content, true);
+
+            mailSender.send(message);
+            log.info("Successfully sent order email to: {}", toEmail);
+            
+        } catch (MessagingException e) {
+            log.error("Failed to send order email to {}: {}", toEmail, e.getMessage());
         }
-        log.info("Finished triggering emails for {} users", users.size());
     }
 }
