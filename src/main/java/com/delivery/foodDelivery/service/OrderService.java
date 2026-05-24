@@ -127,7 +127,19 @@ public class OrderService {
             String.format("{\"orderId\": %d, \"customerId\": %d, \"restaurantId\": \"%s\", \"total\": %f, \"status\": \"PLACED\", \"timestamp\": %d}", 
             saved.getId(), customerId, restaurantId, total, System.currentTimeMillis()));
 
-        return toResponse(saved, restaurant.getName());
+        OrderResponse response = toResponse(saved, restaurant.getName());
+
+        // Notify user via WebSocket
+        String userDestination = "/topic/order/" + customerId;
+        messagingTemplate.convertAndSend(userDestination, response);
+        log.info("WebSocket order placed notification sent to user {}", userDestination);
+
+        // Notify admin via WebSocket
+        String adminDestination = "/topic/admin/orders";
+        messagingTemplate.convertAndSend(adminDestination, response);
+        log.info("WebSocket order placed notification sent to admin {}", adminDestination);
+
+        return response;
     }
 
     @Transactional
@@ -148,6 +160,11 @@ public class OrderService {
         String destination = "/topic/order/" + order.getCustomer().getId();
         messagingTemplate.convertAndSend(destination, response);
         log.info("WebSocket notification sent to {}", destination);
+
+        // Notify admin via WebSocket
+        String adminDestination = "/topic/admin/orders";
+        messagingTemplate.convertAndSend(adminDestination, response);
+        log.info("WebSocket status update sent to admin {}", adminDestination);
 
         return response;
     }
