@@ -29,13 +29,18 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @Override
     @NonNull
     public ClientConfiguration clientConfiguration() {
-        String uriStr = "localhost:9200";
-        String username = "";
-        String password = "";
+        String uriStr = getProp("spring.elasticsearch.uris", "ELASTICSEARCH_URL", "localhost:9200");
+        String username = getProp("spring.elasticsearch.username", "ELASTICSEARCH_USERNAME", "");
+        String password = getProp("spring.elasticsearch.password", "ELASTICSEARCH_PASSWORD", "");
 
         System.out.println("DEBUG: ElasticsearchConfig - Resolving connection to: " + uriStr);
 
-        URI uri = URI.create(uriStr.startsWith("http") ? uriStr : "https://" + uriStr);
+        // Ensure scheme exists
+        if (!uriStr.startsWith("http")) {
+            uriStr = (uriStr.contains("localhost") || uriStr.contains("127.0.0.1")) ? "http://" + uriStr : "https://" + uriStr;
+        }
+
+        URI uri = URI.create(uriStr);
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
 
@@ -64,11 +69,15 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
     @NonNull
     @Bean(name = "elasticsearchRestClient")
     public RestClient elasticsearchRestClient(@NonNull ClientConfiguration clientConfiguration) {
-        String uriStr = "localhost:9200";
-        String username = "";
-        String password = "";
+        String uriStr = getProp("spring.elasticsearch.uris", "ELASTICSEARCH_URL", "localhost:9200");
+        String username = getProp("spring.elasticsearch.username", "ELASTICSEARCH_USERNAME", "");
+        String password = getProp("spring.elasticsearch.password", "ELASTICSEARCH_PASSWORD", "");
 
-        URI uri = URI.create(uriStr.startsWith("http") ? uriStr : "https://" + uriStr);
+        if (!uriStr.startsWith("http")) {
+            uriStr = (uriStr.contains("localhost") || uriStr.contains("127.0.0.1")) ? "http://" + uriStr : "https://" + uriStr;
+        }
+
+        URI uri = URI.create(uriStr);
         String host = uri.getHost();
         int port = uri.getPort() == -1 ? (uri.getScheme().equals("https") ? 443 : 80) : uri.getPort();
 
