@@ -33,6 +33,14 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         String username = getProp("spring.elasticsearch.username", "ELASTICSEARCH_USERNAME", "");
         String password = getProp("spring.elasticsearch.password", "ELASTICSEARCH_PASSWORD", "");
 
+        // Force fallback to localhost if the Aiven cluster is the one that was deleted
+        if (uriStr != null && uriStr.contains("os-1928652d-pv254424-9a92.g.aivencloud.com")) {
+            System.out.println("DEBUG: Detected dead Aiven cluster URL. Forcing fallback to localhost:9200.");
+            uriStr = "http://localhost:9200";
+            username = "";
+            password = "";
+        }
+
         System.out.println("DEBUG: ElasticsearchConfig - Resolving connection to: " + uriStr);
 
         // Ensure scheme exists
@@ -72,6 +80,13 @@ public class ElasticsearchConfig extends ElasticsearchConfiguration {
         String uriStr = getProp("spring.elasticsearch.uris", "ELASTICSEARCH_URL", "localhost:9200");
         String username = getProp("spring.elasticsearch.username", "ELASTICSEARCH_USERNAME", "");
         String password = getProp("spring.elasticsearch.password", "ELASTICSEARCH_PASSWORD", "");
+
+        // Force fallback to localhost if the Aiven cluster is the one that was deleted
+        if (uriStr != null && uriStr.contains("os-1928652d-pv254424-9a92.g.aivencloud.com")) {
+            uriStr = "http://localhost:9200";
+            username = "";
+            password = "";
+        }
 
         if (!uriStr.startsWith("http")) {
             uriStr = (uriStr.contains("localhost") || uriStr.contains("127.0.0.1")) ? "http://" + uriStr : "https://" + uriStr;
