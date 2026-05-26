@@ -6,22 +6,32 @@ import com.delivery.foodDelivery.entity.MenuItem;
 import com.delivery.foodDelivery.entity.Restaurant;
 import com.delivery.foodDelivery.exception.ResourceNotFoundException;
 import com.delivery.foodDelivery.repository.mongo.RestaurantRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
     private final RestaurantSearchService searchService;
 
+    @Autowired
+    public RestaurantService(RestaurantRepository restaurantRepository,
+                             @Autowired(required = false) RestaurantSearchService searchService) {
+        this.restaurantRepository = restaurantRepository;
+        this.searchService = searchService;
+    }
+
     private void syncToElasticsearch(Restaurant restaurant) {
+        if (searchService == null) {
+            log.debug("Elasticsearch sync skipped - search service not available");
+            return;
+        }
         try {
             com.delivery.foodDelivery.elasticsearch.RestaurantDocument doc = com.delivery.foodDelivery.elasticsearch.RestaurantDocument.builder()
                     .id(restaurant.getId())
